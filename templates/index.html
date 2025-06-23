@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>팀 프로젝트 투표 시스템</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        .vote-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .vote-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .vote-card.selected {
+            border-color: #3B82F6;
+            background-color: #EBF8FF;
+        }
+        .vote-button {
+            transition: all 0.3s ease;
+        }
+        .vote-button:hover {
+            transform: scale(1.05);
+        }
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .modal {
+            backdrop-filter: blur(4px);
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div id="app"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function App() {
+            const [mode, setMode] = useState('student'); // 'student' or 'admin'
+            const [currentUser, setCurrentUser] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [message, setMessage] = useState('');
+            const [messageType, setMessageType] = useState(''); // 'success' or 'error'
+
+            const showMessage = (msg, type = 'success') => {
+                setMessage(msg);
+                setMessageType(type);
+                setTimeout(() => setMessage(''), 4000);
+            };
+
+            return (
+                <div className="min-h-screen">
+                    {/* 헤더 */}
+                    <header className="bg-white shadow-lg">
+                        <div className="container mx-auto px-4 py-6">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-800">팀 프로젝트 투표 시스템</h1>
+                                    <p className="text-gray-600 mt-1">최고의 프로젝트를 선택해주세요</p>
+                                </div>
+                                <div className="flex space-x-4">
+                                    <button
+                                        onClick={() => {
+                                            setMode('student');
+                                            setCurrentUser(null);
+                                        }}
+                                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                            mode === 'student' 
+                                                ? 'bg-blue-500 text-white' 
+                                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                        }`}
+                                    >
+                                        학생 모드
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setMode('admin');
+                                            setCurrentUser(null);
+                                        }}
+                                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                            mode === 'admin' 
+                                                ? 'bg-indigo-500 text-white' 
+                                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                        }`}
+                                    >
+                                        관리자 모드
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* 메시지 표시 */}
+                    {message && (
+                        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg fade-in ${
+                            messageType === 'success' 
+                                ? 'bg-green-500 text-white' 
+                                : 'bg-red-500 text-white'
+                        }`}>
+                            {message}
+                        </div>
+                    )}
+
+                    {/* 메인 컨텐츠 */}
+                    <main className="container mx-auto px-4 py-8">
+                        {mode === 'student' ? (
+                            <StudentMode 
+                                currentUser={currentUser} 
+                                setCurrentUser={setCurrentUser}
+                                showMessage={showMessage}
+                                loading={loading}
+                                setLoading={setLoading}
+                            />
+                        ) : (
+                            <AdminMode 
+                                showMessage={showMessage}
+                                loading={loading}
+                                setLoading={setLoading}
+                            />
+                        )}
+                    </main>
+                </div>
+            );
+        }
+
+        function StudentMode({ currentUser, setCurrentUser, showMessage, loading, setLoading }) {
+            const [teams, setTeams] = useState([]);
+            const [selectedTeam, setSelectedTeam] = useState(null);
+
+            useEffect(() => {
+                if (currentUser) {
+                    loadVotableTeams();
+                }
+            }, [currentUser]);
+
+            const loadVotableTeams = async () => {
+                try {
+                    const response = await fetch(`/api/teams/${currentUser.id}`);
+                    const data = await response.json();
+                    if (data.success) {
+                        setTeams(data.teams);
+                    } else {
+                        showMessage(data.message, 'error');
+                    }
+                } catch (error) {
+                    showMessage('팀 목록을 불러오는데 실패했습니다.', 'error');
+                }
+            };
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                
+                const formData = new FormData(e.target);
+                const loginData = {
+                    name: formData.get('name'),
+                    password: formData.get('password')
+                };
+
+                try {
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(loginData)
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        setCurrentUser(data.student);
+                        showMessage(`${data.student.name}님, 환영합니다!`);
+                    } else {
+                        showMessage(data.message, 'error');
+                    }
+                } catch (error) {
+                    showMessage('로그인 중 오류가 발생했습니다.', 'error');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleVote = async () => {
+                if (!selectedTeam) {
+                    showMessage('투표할 팀을 선택해주세요.', 'error');
+                    return;
+                }
+
+                setLoading(true);
+                try {
+                    const response = await fetch('/api/vote', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            student_id: currentUser.id,
+                            team_id: selectedTeam.id
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        showMessage(data.message);
+                        setCurrentUser({...currentUser, has_voted: true, voted_team: selectedTeam.id});
+                    } else {
+                        showMessage(data.message, 'error');
+                    }
+                } catch (error) {
+                    showMessage('투표 중 오류가 발생했습니다.', 'error');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            if (!currentUser) {
+                return (
+                    <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
+                        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">학생 로그인</h2>
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">이름</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    required
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="이름을 입력하세요"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">비밀번호</label>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    required
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="비밀번호를 입력하세요"
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${
+                                    loading 
+                                        ? 'bg-gray-400 cursor-not-allowed' 
+                                        : 'bg-blue-500 hover:bg-blue-600'
+                                }`}
+                            >
+                                {loading ? '로그인 중...' : '로그인'}
+                            </button>
+                        </form>
+                    </div>
+                );
+            }
+
+            if (currentUser.has_voted) {
+                return (
+                    <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8 text-center">
+                        <div className="text-6xl mb-4">🎉</div>
+                        <h2 className="text-2xl font-bold text-gray-800 mb-4">투표 완료!</h2>
+                        <p className="text-gray-600 mb-6">
+                            {currentUser.name}님의 투표가 성공적으로 완료되었습니다.
+                        </p>
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                            <p className="text-sm text-blue-800">
+                                투표한 팀: <span className="font-semibold">
+                                    {teams.find(t => t.id === currentUser.voted_team)?.name || '알 수 없음'}
+                                </span>
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setCurrentUser(null)}
+                            className="mt-6 px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                        >
+                            로그아웃
+                        </button>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="max-w-4xl mx-auto">
+                    <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-800">
+                                    안녕하세요, {currentUser.name}님!
+                                </h2>
+                                <p className="text-gray-600">투표할 팀을 선택해주세요</p>
+                            </div>
+                            <button
+                                onClick={() => setCurrentUser(null)}
+                                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                            >
+                                로그아웃
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        {teams.map(team => (
+                            <div
+                                key={team.id}
+                                onClick={() => setSelectedTeam(team)}
+                                className={`vote-card p-6 bg-white rounded-xl shadow-lg cursor-pointer ${
+                                    selectedTeam?.id === team.id ? 'selected' : ''
+                                }`}
+                            >
+                                <h3 className="text-xl font-bold text-gray-800 mb-2">{team.name}</h3>
+                                <p className="text-gray-600 mb-4">{team.project_name}</p>
+                                <div className="flex justify-end items-center">
+                                    {selectedTeam?.id === team.id && (
+                                        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {selectedTeam && (
+                        <div className="text-center">
+                            <button
+                                onClick={handleVote}
+                                disabled={loading}
+                                className={`vote-button py-4 px-8 rounded-xl font-bold text-white text-lg transition-all ${
+                                    loading 
+                                        ? 'bg-gray-400 cursor-not-allowed' 
+                                        : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg'
+                                }`}
+                            >
+                                {loading ? '투표 중...' : `${selectedTeam.name}에 투표하기`}
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        function AdminMode({ showMessage, loading, setLoading }) {
+            const [students, setStudents] = useState([]);
+            const [teams, setTeams] = useState([]);
+            const [votes, setVotes] = useState([]);
+            const [stats, setStats] = useState({});
+            const [activeTab, setActiveTab] = useState('results');
+            const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+
+            useEffect(() => {
+                if (isAdminLoggedIn) {
+                    loadAdminData();
+                }
+            }, [isAdminLoggedIn]);
+
+            const loadAdminData = async () => {
+                try {
+                    const [studentsRes, teamsRes, votesRes] = await Promise.all([
+                        fetch('/api/admin/students'),
+                        fetch('/api/admin/teams'),
+                        fetch('/api/admin/votes')
+                    ]);
+
+                    const [studentsData, teamsData, votesData] = await Promise.all([
+                        studentsRes.json(),
+                        teamsRes.json(),
+                        votesRes.json()
+                    ]);
+
+                    setStudents(studentsData);
+                    setTeams(teamsData);
+                    setVotes(votesData.votes || []);
+                    setStats({
+                        total_votes: votesData.total_votes,
+                        total_students: votesData.total_students,
+                        voted_students: votesData.voted_students
+                    });
+                } catch (error) {
+                    showMessage('데이터를 불러오는데 실패했습니다.', 'error');
+                }
+            };
+
+            const handleAdminLogin = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                
+                const formData = new FormData(e.target);
+                const adminPassword = formData.get('admin_password');
+
+                try {
+                    // 서버에서 관리자 비밀번호 확인
+                    const response = await fetch('/api/admin/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ admin_password: adminPassword })
+                    });
+
+                    const data = await response.json();
+                    if (response.status === 401) {
+                        showMessage('관리자 비밀번호가 올바르지 않습니다.', 'error');
+                    } else if (data.success) {
+                        setIsAdminLoggedIn(true);
+                        showMessage('관리자 로그인 성공');
+                    } else {
+                        showMessage('로그인 중 오류가 발생했습니다.', 'error');
+                    }
+                } catch (error) {
+                    showMessage('서버 연결에 실패했습니다.', 'error');
+                }
+                setLoading(false);
+            };
+
+            const handleReset = async () => {
+                const password = prompt('관리자 비밀번호를 입력하세요:');
+                if (!password) return;
+
+                setLoading(true);
+                try {
+                    const response = await fetch('/api/admin/reset', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ admin_password: password })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        showMessage(data.message);
+                        loadAdminData();
+                    } else {
+                        showMessage(data.message, 'error');
+                    }
+                } catch (error) {
+                    showMessage('초기화 중 오류가 발생했습니다.', 'error');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleDownload = () => {
+                window.location.href = '/api/admin/download';
+            };
+
+            const sortedTeams = [...teams].sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0));
+
+            if (!isAdminLoggedIn) {
+                return (
+                    <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
+                        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">관리자 로그인</h2>
+                        <form onSubmit={handleAdminLogin} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">관리자 비밀번호</label>
+                                <input
+                                    type="password"
+                                    name="admin_password"
+                                    required
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="관리자 비밀번호를 입력하세요"
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${
+                                    loading 
+                                        ? 'bg-gray-400 cursor-not-allowed' 
+                                        : 'bg-indigo-500 hover:bg-indigo-600'
+                                }`}
+                            >
+                                {loading ? '로그인 중...' : '관리자 로그인'}
+                            </button>
+                        </form>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="max-w-6xl mx-auto">
+                    <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold text-gray-800">관리자 대시보드</h2>
+                            <button
+                                onClick={() => setIsAdminLoggedIn(false)}
+                                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                            >
+                                로그아웃
+                            </button>
+                        </div>
+                        
+                        {/* 통계 */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div className="bg-blue-50 p-4 rounded-lg">
+                                <h3 className="text-lg font-semibold text-blue-800">전체 학생</h3>
+                                <p className="text-3xl font-bold text-blue-600">{stats.total_students}</p>
+                            </div>
+                            <div className="bg-green-50 p-4 rounded-lg">
+                                <h3 className="text-lg font-semibold text-green-800">투표 완료</h3>
+                                <p className="text-3xl font-bold text-green-600">{stats.voted_students}</p>
+                            </div>
+                            <div className="bg-purple-50 p-4 rounded-lg">
+                                <h3 className="text-lg font-semibold text-purple-800">투표율</h3>
+                                <p className="text-3xl font-bold text-purple-600">
+                                    {stats.total_students > 0 ? Math.round(stats.voted_students / stats.total_students * 100) : 0}%
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* 액션 버튼 */}
+                        <div className="flex space-x-4">
+                            <button
+                                onClick={handleReset}
+                                disabled={loading}
+                                className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                            >
+                                투표 초기화
+                            </button>
+                            <button
+                                onClick={handleDownload}
+                                className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                            >
+                                결과 다운로드
+                            </button>
+                            <button
+                                onClick={loadAdminData}
+                                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                            >
+                                새로고침
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* 탭 */}
+                    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div className="flex border-b">
+                            <button
+                                onClick={() => setActiveTab('results')}
+                                className={`px-6 py-4 font-medium ${
+                                    activeTab === 'results' 
+                                        ? 'bg-blue-500 text-white' 
+                                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                                }`}
+                            >
+                                투표 결과
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('students')}
+                                className={`px-6 py-4 font-medium ${
+                                    activeTab === 'students' 
+                                        ? 'bg-blue-500 text-white' 
+                                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                                }`}
+                            >
+                                학생 현황
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            {activeTab === 'results' ? (
+                                <div>
+                                    <h3 className="text-xl font-bold text-gray-800 mb-4">팀별 투표 결과</h3>
+                                    <div className="space-y-4">
+                                        {sortedTeams.map((team, index) => (
+                                            <div key={team.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                                <div className="flex items-center space-x-4">
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
+                                                        index === 0 ? 'bg-yellow-500' : 
+                                                        index === 1 ? 'bg-gray-400' : 
+                                                        index === 2 ? 'bg-orange-500' : 'bg-blue-500'
+                                                    }`}>
+                                                        {index + 1}
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-semibold text-gray-800">{team.name}</h4>
+                                                        <p className="text-sm text-gray-600">{team.project_name}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-2xl font-bold text-blue-600">{team.vote_count}</p>
+                                                    <p className="text-sm text-gray-500">표</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div>
+                                    <h3 className="text-xl font-bold text-gray-800 mb-4">학생 투표 현황</h3>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-sm">
+                                            <thead>
+                                                <tr className="border-b">
+                                                    <th className="text-left py-2">이름</th>
+                                                    <th className="text-left py-2">소속팀</th>
+                                                    <th className="text-left py-2">투표상태</th>
+                                                    <th className="text-left py-2">투표팀</th>
+                                                    <th className="text-left py-2">투표시간</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {students.map(student => (
+                                                    <tr key={student.id} className="border-b">
+                                                        <td className="py-2">{student.name}</td>
+                                                        <td className="py-2">{student.team_name}</td>
+                                                        <td className="py-2">
+                                                            <span className={`px-2 py-1 rounded-full text-xs ${
+                                                                student.has_voted 
+                                                                    ? 'bg-green-100 text-green-800' 
+                                                                    : 'bg-gray-100 text-gray-800'
+                                                            }`}>
+                                                                {student.has_voted ? '완료' : '미완료'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-2">
+                                                            {student.has_voted ? 
+                                                                teams.find(t => t.id === student.voted_team)?.name || '-' : 
+                                                                '-'
+                                                            }
+                                                        </td>
+                                                        <td className="py-2">{student.vote_timestamp || '-'}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('app'));
+    </script>
+</body>
+</html>

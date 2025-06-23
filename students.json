@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "name": "김민준",
+    "password": "1234",
+    "team_id": 1,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 2,
+    "name": "이서연",
+    "password": "2345",
+    "team_id": 1,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 3,
+    "name": "박지호",
+    "password": "3456",
+    "team_id": 2,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 4,
+    "name": "최수아",
+    "password": "4567",
+    "team_id": 2,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 5,
+    "name": "정우진",
+    "password": "5678",
+    "team_id": 3,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 6,
+    "name": "황예은",
+    "password": "6789",
+    "team_id": 3,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  }
+]
