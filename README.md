@@ -107,7 +107,7 @@ http://localhost:5000
 ## 보안 설정
 
 ### 관리자 비밀번호
-- 현재 설정: `admin123`
+- 현재 설정: `elixirrteacher`
 - 변경 방법: `app.py` 파일의 `/api/admin/reset` 엔드포인트에서 수정
 
 ### 학생 비밀번호
