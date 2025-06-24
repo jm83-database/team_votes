@@ -44,6 +44,20 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .help-icon {
+            transition: all 0.3s ease;
+        }
+        .help-icon:hover {
+            transform: scale(1.1);
+            color: #3B82F6;
+        }
+        .help-modal {
+            backdrop-filter: blur(4px);
+        }
+        .help-content {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
@@ -58,6 +72,7 @@
             const [loading, setLoading] = useState(false);
             const [message, setMessage] = useState('');
             const [messageType, setMessageType] = useState(''); // 'success' or 'error'
+            const [showHelp, setShowHelp] = useState(false);
 
             const showMessage = (msg, type = 'success') => {
                 setMessage(msg);
@@ -82,7 +97,16 @@
                                         <p className="text-gray-600 mt-1">최고의 프로젝트를 선택해주세요</p>
                                     </div>
                                 </div>
-                                <div className="flex space-x-4">
+                                <div className="flex items-center space-x-4">
+                                    <button
+                                        onClick={() => setShowHelp(true)}
+                                        className="help-icon p-2 rounded-full hover:bg-gray-100 transition-colors"
+                                        title="사용법 도움말"
+                                    >
+                                        <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </button>
                                     <button
                                         onClick={() => {
                                             setMode('student');
@@ -122,6 +146,32 @@
                                 : 'bg-red-500 text-white'
                         }`}>
                             {message}
+                        </div>
+                    )}
+
+                    {/* 도움말 모달 */}
+                    {showHelp && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 help-modal flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-screen overflow-hidden">
+                                <div className="p-6 border-b border-gray-200">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-2xl font-bold text-gray-800">
+                                            {mode === 'student' ? '학생 모드 사용법' : '관리자 모드 사용법'}
+                                        </h3>
+                                        <button
+                                            onClick={() => setShowHelp(false)}
+                                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                        >
+                                            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="p-6 help-content">
+                                    <HelpContent mode={mode} />
+                                </div>
+                            </div>
                         </div>
                     )}
 
@@ -649,6 +699,131 @@
                     </div>
                 </div>
             );
+        }
+
+        function HelpContent({ mode }) {
+            if (mode === 'student') {
+                return (
+                    <div className="space-y-6">
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                            <h4 className="text-lg font-semibold text-blue-800 mb-3">📚 학생 모드 사용법</h4>
+                            <div className="space-y-3 text-blue-700">
+                                <div className="flex items-start space-x-3">
+                                    <span className="font-bold text-blue-600">1.</span>
+                                    <div>
+                                        <p className="font-medium">로그인</p>
+                                        <p className="text-sm">본인의 이름과 비밀번호를 입력하여 로그인하세요.</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-start space-x-3">
+                                    <span className="font-bold text-blue-600">2.</span>
+                                    <div>
+                                        <p className="font-medium">팀 선택</p>
+                                        <p className="text-sm">투표하고 싶은 팀을 클릭하여 선택하세요. (본인 팀 제외)</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-start space-x-3">
+                                    <span className="font-bold text-blue-600">3.</span>
+                                    <div>
+                                        <p className="font-medium">투표하기</p>
+                                        <p className="text-sm">선택한 팀에 투표 버튼을 클릭하여 투표를 완료하세요.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-yellow-50 p-4 rounded-lg">
+                            <h4 className="text-lg font-semibold text-yellow-800 mb-3">⚠️ 주의사항</h4>
+                            <ul className="space-y-2 text-yellow-700 text-sm">
+                                <li>• 한 번만 투표할 수 있습니다.</li>
+                                <li>• 본인 팀에는 투표할 수 없습니다.</li>
+                                <li>• 투표 후에는 변경할 수 없습니다.</li>
+                                <li>• 정확한 이름과 비밀번호를 입력해야 합니다.</li>
+                            </ul>
+                        </div>
+                        
+                        <div className="bg-green-50 p-4 rounded-lg">
+                            <h4 className="text-lg font-semibold text-green-800 mb-3">💡 팁</h4>
+                            <ul className="space-y-2 text-green-700 text-sm">
+                                <li>• 각 팀의 프로젝트 이름을 확인하고 신중하게 선택하세요.</li>
+                                <li>• 투표 완료 후 화면에서 투표한 팀 정보를 확인할 수 있습니다.</li>
+                                <li>• 문제가 발생하면 관리자에게 문의하세요.</li>
+                            </ul>
+                        </div>
+                    </div>
+                );
+            } else {
+                return (
+                    <div className="space-y-6">
+                        <div className="bg-indigo-50 p-4 rounded-lg">
+                            <h4 className="text-lg font-semibold text-indigo-800 mb-3">🔧 관리자 모드 사용법</h4>
+                            <div className="space-y-3 text-indigo-700">
+                                <div className="flex items-start space-x-3">
+                                    <span className="font-bold text-indigo-600">1.</span>
+                                    <div>
+                                        <p className="font-medium">관리자 로그인</p>
+                                        <p className="text-sm">관리자 비밀번호를 입력하여 관리자 모드에 접속하세요.</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-start space-x-3">
+                                    <span className="font-bold text-indigo-600">2.</span>
+                                    <div>
+                                        <p className="font-medium">실시간 통계 확인</p>
+                                        <p className="text-sm">전체 학생 수, 투표 완료 수, 투표율을 실시간으로 확인할 수 있습니다.</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-start space-x-3">
+                                    <span className="font-bold text-indigo-600">3.</span>
+                                    <div>
+                                        <p className="font-medium">투표 결과 조회</p>
+                                        <p className="text-sm">'투표 결과' 탭에서 팀별 득표 수를 순위별로 확인할 수 있습니다.</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-start space-x-3">
+                                    <span className="font-bold text-indigo-600">4.</span>
+                                    <div>
+                                        <p className="font-medium">학생 현황 관리</p>
+                                        <p className="text-sm">'학생 현황' 탭에서 각 학생의 투표 상태를 확인할 수 있습니다.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-purple-50 p-4 rounded-lg">
+                            <h4 className="text-lg font-semibold text-purple-800 mb-3">🛠️ 관리 기능</h4>
+                            <div className="space-y-2 text-purple-700 text-sm">
+                                <div className="flex items-center space-x-2">
+                                    <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
+                                    <p><strong>투표 초기화:</strong> 모든 투표 데이터를 삭제하고 초기 상태로 되돌립니다.</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
+                                    <p><strong>결과 다운로드:</strong> 투표 결과를 CSV 파일로 다운로드할 수 있습니다.</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
+                                    <p><strong>새로고침:</strong> 최신 데이터로 화면을 업데이트합니다.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-red-50 p-4 rounded-lg">
+                            <h4 className="text-lg font-semibold text-red-800 mb-3">⚠️ 중요 사항</h4>
+                            <ul className="space-y-2 text-red-700 text-sm">
+                                <li>• 투표 초기화는 되돌릴 수 없으니 신중하게 사용하세요.</li>
+                                <li>• CSV 다운로드에는 투표자, 소속팀, 투표받은팀, 투표시간 정보가 포함됩니다.</li>
+                                <li>• 관리자 비밀번호는 보안상 주의깊게 관리하세요.</li>
+                                <li>• 실시간 데이터 확인을 위해 주기적으로 새로고침을 활용하세요.</li>
+                            </ul>
+                        </div>
+                    </div>
+                );
+            }
         }
 
         ReactDOM.render(<App />, document.getElementById('app'));
