@@ -19,15 +19,23 @@ def get_kst_now():
 STUDENTS_FILE = 'students.json'
 TEAMS_FILE = 'teams.json'
 VOTES_FILE = 'votes.json'
+VOTE_CONFIG_FILE = 'vote_config.json'
 
 # 전역 변수
 students = []
 teams = []
 votes = []
+vote_config = {
+    'is_active': False,
+    'start_time': None,
+    'end_time': None,
+    'duration_minutes': 60,
+    'vote_mode': 'single'  # 'single' or 'multiple'
+}
 
 def load_data():
     """모든 데이터 파일을 로드합니다."""
-    global students, teams, votes
+    global students, teams, votes, vote_config
     
     # 학생 데이터 로드
     try:
@@ -61,6 +69,17 @@ def load_data():
     except Exception as e:
         print(f"투표 데이터 로드 중 오류: {e}")
         votes = []
+    
+    # 투표 설정 데이터 로드
+    try:
+        if os.path.exists(VOTE_CONFIG_FILE):
+            with open(VOTE_CONFIG_FILE, 'r', encoding='utf-8') as f:
+                vote_config.update(json.load(f))
+        else:
+            save_vote_config()
+    except Exception as e:
+        print(f"투표 설정 데이터 로드 중 오류: {e}")
+        save_vote_config()
         
     print(f"데이터 로드 완료: 학생 {len(students)}명, 팀 {len(teams)}개, 투표 {len(votes)}개")
 
@@ -87,6 +106,29 @@ def save_votes():
             json.dump(votes, f, ensure_ascii=False, indent=2)
     except Exception as e:
         print(f"투표 데이터 저장 중 오류: {e}")
+
+def save_vote_config():
+    """투표 설정 데이터를 저장합니다."""
+    try:
+        with open(VOTE_CONFIG_FILE, 'w', encoding='utf-8') as f:
+            json.dump(vote_config, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"투표 설정 저장 중 오류: {e}")
+
+def is_voting_active():
+    """현재 투표가 활성화되어 있는지 확인합니다."""
+    if not vote_config.get('is_active', False):
+        return False
+    
+    if not vote_config.get('start_time') or not vote_config.get('end_time'):
+        return vote_config.get('is_active', False)
+    
+    current_time = get_kst_now()
+    current_time_str = current_time.strftime("%H:%M")
+    start_time_str = vote_config['start_time']
+    end_time_str = vote_config['end_time']
+    
+    return start_time_str <= current_time_str <= end_time_str
 
 def update_team_vote_counts():
     """팀별 투표 수를 업데이트합니다."""
@@ -165,12 +207,27 @@ def get_votable_teams(student_id):
 # API: 투표하기
 @app.route('/api/vote', methods=['POST'])
 def vote():
+    # 투표 활성화 상태 확인
+    if not is_voting_active():
+        return jsonify({"success": False, "message": "현재 투표가 비활성화되어 있습니다."}), 400
+    
     data = request.json
     student_id = data.get('student_id')
-    team_id = data.get('team_id')
+    team_ids = data.get('team_ids')  # 다중 투표를 위해 team_ids 사용
     
-    if not student_id or not team_id:
+    if not student_id or not team_ids:
         return jsonify({"success": False, "message": "학생 ID와 팀 ID가 필요합니다."}), 400
+    
+    # team_ids가 리스트가 아니면 리스트로 변환 (하위 호환성)
+    if not isinstance(team_ids, list):
+        team_ids = [team_ids]
+    
+    # 투표 방식 확인
+    vote_mode = vote_config.get('vote_mode', 'single')
+    if vote_mode == 'single' and len(team_ids) != 1:
+        return jsonify({"success": False, "message": "단일 투표 모드에서는 1개 팀만 선택할 수 있습니다."}), 400
+    elif vote_mode == 'multiple' and len(team_ids) != 3:
+        return jsonify({"success": False, "message": "다중 투표 모드에서는 3개 팀을 선택해야 합니다."}), 400
     
     # 학생 찾기
     student = None
@@ -187,37 +244,46 @@ def vote():
         return jsonify({"success": False, "message": "이미 투표하셨습니다."}), 400
     
     # 자신의 팀에 투표하는지 확인
-    if student['team_id'] == team_id:
+    if student['team_id'] in team_ids:
         return jsonify({"success": False, "message": "자신의 팀에는 투표할 수 없습니다."}), 400
     
-    # 투표 대상 팀이 존재하는지 확인
-    target_team = None
-    for team in teams:
-        if team['id'] == team_id:
-            target_team = team
-            break
+    # 중복 팀 확인
+    if len(team_ids) != len(set(team_ids)):
+        return jsonify({"success": False, "message": "같은 팀을 중복으로 선택할 수 없습니다."}), 400
     
-    if not target_team:
-        return jsonify({"success": False, "message": "투표 대상 팀을 찾을 수 없습니다."}), 404
+    # 투표 대상 팀들이 존재하는지 확인
+    target_teams = []
+    for team_id in team_ids:
+        target_team = None
+        for team in teams:
+            if team['id'] == team_id:
+                target_team = team
+                break
+        if not target_team:
+            return jsonify({"success": False, "message": f"투표 대상 팀(ID: {team_id})을 찾을 수 없습니다."}), 404
+        target_teams.append(target_team)
     
     # 투표 처리
     current_time = get_kst_now()
     
     # 학생 투표 상태 업데이트
     student['has_voted'] = True
-    student['voted_team'] = team_id
+    student['voted_teams'] = team_ids  # 다중 투표 지원
     student['vote_timestamp'] = current_time.strftime("%Y-%m-%d %H:%M:%S")
     
-    # 투표 기록 저장
-    vote_record = {
-        "id": len(votes) + 1,
-        "student_id": student_id,
-        "student_name": student['name'],
-        "voted_team_id": team_id,
-        "voted_team_name": target_team['name'],
-        "timestamp": current_time.strftime("%Y-%m-%d %H:%M:%S")
-    }
-    votes.append(vote_record)
+    # 투표 기록 저장 (각 팀별로 개별 기록)
+    for i, team_id in enumerate(team_ids):
+        target_team = target_teams[i]
+        vote_record = {
+            "id": len(votes) + 1,
+            "student_id": student_id,
+            "student_name": student['name'],
+            "voted_team_id": team_id,
+            "voted_team_name": target_team['name'],
+            "timestamp": current_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "vote_mode": vote_mode
+        }
+        votes.append(vote_record)
     
     # 팀 투표 수 업데이트
     update_team_vote_counts()
@@ -227,9 +293,15 @@ def vote():
     save_votes()
     save_teams()
     
+    if vote_mode == 'single':
+        message = f"{target_teams[0]['name']}에 투표가 완료되었습니다!"
+    else:
+        team_names = [team['name'] for team in target_teams]
+        message = f"{', '.join(team_names)}에 투표가 완료되었습니다!"
+    
     return jsonify({
         "success": True, 
-        "message": f"{target_team['name']}에 투표가 완료되었습니다!"
+        "message": message
     })
 
 # API: 관리자 - 모든 학생 목록
@@ -316,6 +388,134 @@ def reset_votes():
     save_teams()
     
     return jsonify({"success": True, "message": "투표가 초기화되었습니다."})
+
+# API: 관리자 - 투표 설정 조회
+@app.route('/api/admin/vote-config', methods=['GET'])
+def get_vote_config():
+    return jsonify({
+        "success": True, 
+        "config": {
+            "is_active": vote_config.get('is_active', False),
+            "start_time": vote_config.get('start_time'),
+            "end_time": vote_config.get('end_time'),
+            "duration_minutes": vote_config.get('duration_minutes', 60),
+            "vote_mode": vote_config.get('vote_mode', 'single')
+        }
+    })
+
+# API: 관리자 - 투표 시작
+@app.route('/api/admin/start-vote', methods=['POST'])
+def start_vote():
+    data = request.json
+    admin_password = data.get('admin_password')
+    duration_minutes = data.get('duration_minutes', 60)
+    vote_mode = data.get('vote_mode', 'single')
+    
+    if admin_password != 'elixirrteacher':
+        return jsonify({"success": False, "message": "관리자 비밀번호가 올바르지 않습니다."}), 401
+    
+    if vote_mode not in ['single', 'multiple']:
+        return jsonify({"success": False, "message": "잘못된 투표 방식입니다."}), 400
+    
+    current_time = get_kst_now()
+    end_time = current_time + timedelta(minutes=duration_minutes)
+    
+    vote_config['is_active'] = True
+    vote_config['start_time'] = current_time.strftime("%H:%M")
+    vote_config['end_time'] = end_time.strftime("%H:%M")
+    vote_config['duration_minutes'] = duration_minutes
+    vote_config['vote_mode'] = vote_mode
+    
+    save_vote_config()
+    
+    mode_text = "1개 팀 선택" if vote_mode == 'single' else "3개 팀 선택"
+    return jsonify({
+        "success": True, 
+        "message": f"투표가 시작되었습니다. ({duration_minutes}분간 진행, {mode_text} 방식)",
+        "config": vote_config
+    })
+
+# API: 관리자 - 투표 종료
+@app.route('/api/admin/stop-vote', methods=['POST'])
+def stop_vote():
+    data = request.json
+    admin_password = data.get('admin_password')
+    
+    if admin_password != 'elixirrteacher':
+        return jsonify({"success": False, "message": "관리자 비밀번호가 올바르지 않습니다."}), 401
+    
+    vote_config['is_active'] = False
+    save_vote_config()
+    
+    return jsonify({
+        "success": True, 
+        "message": "투표가 종료되었습니다.",
+        "config": vote_config
+    })
+
+# API: 관리자 - 투표 시간 설정
+@app.route('/api/admin/set-vote-time', methods=['POST'])
+def set_vote_time():
+    data = request.json
+    admin_password = data.get('admin_password')
+    start_time_str = data.get('start_time')
+    end_time_str = data.get('end_time')
+    vote_mode = data.get('vote_mode', 'single')
+    
+    if admin_password != 'elixirrteacher':
+        return jsonify({"success": False, "message": "관리자 비밀번호가 올바르지 않습니다."}), 401
+    
+    if vote_mode not in ['single', 'multiple']:
+        return jsonify({"success": False, "message": "잘못된 투표 방식입니다."}), 400
+    
+    try:
+        # 시간 형식 검증 (HH:MM 형태)
+        start_time = datetime.datetime.strptime(start_time_str, "%H:%M")
+        end_time = datetime.datetime.strptime(end_time_str, "%H:%M")
+        
+        if end_time <= start_time:
+            return jsonify({"success": False, "message": "종료 시간은 시작 시간보다 늦어야 합니다."}), 400
+        
+        vote_config['start_time'] = start_time_str
+        vote_config['end_time'] = end_time_str
+        vote_config['duration_minutes'] = int((end_time - start_time).total_seconds() / 60)
+        vote_config['vote_mode'] = vote_mode
+        vote_config['is_active'] = True
+        
+        save_vote_config()
+        
+        mode_text = "1개 팀 선택" if vote_mode == 'single' else "3개 팀 선택"
+        return jsonify({
+            "success": True, 
+            "message": f"투표 시간이 설정되었습니다. ({start_time_str}~{end_time_str}, {mode_text} 방식)",
+            "config": vote_config
+        })
+        
+    except ValueError:
+        return jsonify({"success": False, "message": "잘못된 시간 형식입니다."}), 400
+
+# API: 관리자 - 투표 방식 설정
+@app.route('/api/admin/set-vote-mode', methods=['POST'])
+def set_vote_mode():
+    data = request.json
+    admin_password = data.get('admin_password')
+    vote_mode = data.get('vote_mode')
+    
+    if admin_password != 'elixirrteacher':
+        return jsonify({"success": False, "message": "관리자 비밀번호가 올바르지 않습니다."}), 401
+    
+    if vote_mode not in ['single', 'multiple']:
+        return jsonify({"success": False, "message": "잘못된 투표 방식입니다."}), 400
+    
+    vote_config['vote_mode'] = vote_mode
+    save_vote_config()
+    
+    mode_text = "1개 팀 선택" if vote_mode == 'single' else "3개 팀 선택"
+    return jsonify({
+        "success": True, 
+        "message": f"투표 방식이 '{mode_text}'로 설정되었습니다.",
+        "config": vote_config
+    })
 
 # API: 관리자 - 투표 결과 CSV 다운로드
 @app.route('/api/admin/download', methods=['GET'])

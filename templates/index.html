@@ -199,9 +199,10 @@
 
         function StudentMode({ currentUser, setCurrentUser, showMessage, loading, setLoading }) {
             const [teams, setTeams] = useState([]);
-            const [selectedTeam, setSelectedTeam] = useState(null);
+            const [selectedTeams, setSelectedTeams] = useState([]);
             const [justVoted, setJustVoted] = useState(false);
             const [countdown, setCountdown] = useState(0);
+            const [voteMode, setVoteMode] = useState('single');
 
             useEffect(() => {
                 if (currentUser) {
@@ -211,15 +212,27 @@
 
             const loadVotableTeams = async () => {
                 try {
-                    const response = await fetch(`/api/teams/${currentUser.id}`);
-                    const data = await response.json();
-                    if (data.success) {
-                        setTeams(data.teams);
+                    const [teamsRes, configRes] = await Promise.all([
+                        fetch(`/api/teams/${currentUser.id}`),
+                        fetch('/api/admin/vote-config')
+                    ]);
+                    
+                    const [teamsData, configData] = await Promise.all([
+                        teamsRes.json(),
+                        configRes.json()
+                    ]);
+                    
+                    if (teamsData.success) {
+                        setTeams(teamsData.teams);
                     } else {
-                        showMessage(data.message, 'error');
+                        showMessage(teamsData.message, 'error');
+                    }
+                    
+                    if (configData.success) {
+                        setVoteMode(configData.config.vote_mode || 'single');
                     }
                 } catch (error) {
-                    showMessage('팀 목록을 불러오는데 실패했습니다.', 'error');
+                    showMessage('데이터를 불러오는데 실패했습니다.', 'error');
                 }
             };
 
@@ -254,9 +267,30 @@
                 }
             };
 
+            const handleTeamSelect = (team) => {
+                if (voteMode === 'single') {
+                    setSelectedTeams([team]);
+                } else {
+                    const isSelected = selectedTeams.some(t => t.id === team.id);
+                    if (isSelected) {
+                        setSelectedTeams(selectedTeams.filter(t => t.id !== team.id));
+                    } else {
+                        if (selectedTeams.length < 3) {
+                            setSelectedTeams([...selectedTeams, team]);
+                        } else {
+                            showMessage('3개 팀까지만 선택할 수 있습니다.', 'error');
+                        }
+                    }
+                }
+            };
+
             const handleVote = async () => {
-                if (!selectedTeam) {
-                    showMessage('투표할 팀을 선택해주세요.', 'error');
+                const requiredCount = voteMode === 'single' ? 1 : 3;
+                if (selectedTeams.length !== requiredCount) {
+                    const message = voteMode === 'single' ? 
+                        '투표할 팀을 선택해주세요.' : 
+                        '정확히 3개 팀을 선택해주세요.';
+                    showMessage(message, 'error');
                     return;
                 }
 
@@ -267,7 +301,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             student_id: currentUser.id,
-                            team_id: selectedTeam.id
+                            team_ids: selectedTeams.map(team => team.id)
                         })
                     });
 
@@ -275,7 +309,7 @@
                     if (data.success) {
                         showMessage(data.message);
                         setJustVoted(true);
-                        setCurrentUser({...currentUser, has_voted: true, voted_team: selectedTeam.id});
+                        setCurrentUser({...currentUser, has_voted: true, voted_teams: selectedTeams.map(t => t.id)});
                         
                         // 5초 카운트다운 시작
                         setCountdown(5);
@@ -357,7 +391,12 @@
                             <div className="bg-blue-50 p-4 rounded-lg mb-6">
                                 <p className="text-sm text-blue-800 mb-2">
                                     투표한 팀: <span className="font-semibold">
-                                        {teams.find(t => t.id === currentUser.voted_team)?.name || '알 수 없음'}
+                                        {currentUser.voted_teams ? 
+                                            currentUser.voted_teams.map(teamId => 
+                                                teams.find(t => t.id === teamId)?.name
+                                            ).filter(Boolean).join(', ') || '알 수 없음'
+                                            : '알 수 없음'
+                                        }
                                     </span>
                                 </p>
                                 {countdown > 0 && (
@@ -385,7 +424,14 @@
                                 <h2 className="text-2xl font-bold text-gray-800">
                                     안녕하세요, {currentUser.name}님!
                                 </h2>
-                                <p className="text-gray-600">투표할 팀을 선택해주세요</p>
+                                <p className="text-gray-600">
+                                    {voteMode === 'single' ? '투표할 팀을 1개 선택해주세요' : '투표할 팀을 3개 선택해주세요'}
+                                    {voteMode === 'multiple' && (
+                                        <span className="ml-2 text-sm text-blue-600">
+                                            ({selectedTeams.length}/3 선택됨)
+                                        </span>
+                                    )}
+                                </p>
                             </div>
                             <button
                                 onClick={() => setCurrentUser(null)}
@@ -397,41 +443,55 @@
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                        {teams.map(team => (
-                            <div
-                                key={team.id}
-                                onClick={() => setSelectedTeam(team)}
-                                className={`vote-card p-6 bg-white rounded-xl shadow-lg cursor-pointer ${
-                                    selectedTeam?.id === team.id ? 'selected' : ''
-                                }`}
-                            >
-                                <h3 className="text-xl font-bold text-gray-800 mb-2">{team.name}</h3>
-                                <p className="text-gray-600 mb-4">{team.project_name}</p>
-                                <div className="flex justify-end items-center">
-                                    {selectedTeam?.id === team.id && (
-                                        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                            </svg>
-                                        </div>
-                                    )}
+                        {teams.map(team => {
+                            const isSelected = selectedTeams.some(t => t.id === team.id);
+                            return (
+                                <div
+                                    key={team.id}
+                                    onClick={() => handleTeamSelect(team)}
+                                    className={`vote-card p-6 bg-white rounded-xl shadow-lg cursor-pointer ${
+                                        isSelected ? 'selected' : ''
+                                    }`}
+                                >
+                                    <h3 className="text-xl font-bold text-gray-800 mb-2">{team.name}</h3>
+                                    <p className="text-gray-600 mb-4">{team.project_name}</p>
+                                    <div className="flex justify-end items-center">
+                                        {isSelected && (
+                                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                </svg>
+                                            </div>
+                                        )}
+                                        {voteMode === 'multiple' && isSelected && (
+                                            <span className="ml-2 text-sm font-bold text-blue-600">
+                                                {selectedTeams.findIndex(t => t.id === team.id) + 1}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
-                    {selectedTeam && (
+                    {selectedTeams.length > 0 && (
                         <div className="text-center">
                             <button
                                 onClick={handleVote}
-                                disabled={loading}
+                                disabled={loading || (voteMode === 'multiple' && selectedTeams.length !== 3)}
                                 className={`vote-button py-4 px-8 rounded-xl font-bold text-white text-lg transition-all ${
-                                    loading 
+                                    loading || (voteMode === 'multiple' && selectedTeams.length !== 3)
                                         ? 'bg-gray-400 cursor-not-allowed' 
                                         : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg'
                                 }`}
                             >
-                                {loading ? '투표 중...' : `${selectedTeam.name}에 투표하기`}
+                                {loading ? '투표 중...' : 
+                                 voteMode === 'single' ? 
+                                    `${selectedTeams[0]?.name}에 투표하기` :
+                                    selectedTeams.length === 3 ? 
+                                        `선택한 3개 팀에 투표하기` : 
+                                        `${3 - selectedTeams.length}개 팀 더 선택해주세요`
+                                }
                             </button>
                         </div>
                     )}
@@ -447,6 +507,16 @@
             const [activeTab, setActiveTab] = useState('results');
             const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
             const [showResetModal, setShowResetModal] = useState(false);
+            const [voteConfig, setVoteConfig] = useState({
+                is_active: false,
+                start_time: null,
+                end_time: null,
+                duration_minutes: 60,
+                vote_mode: 'single'
+            });
+            const [showVoteControlModal, setShowVoteControlModal] = useState(false);
+            const [showSetTimeModal, setShowSetTimeModal] = useState(false);
+            const [voteStartMode, setVoteStartMode] = useState('immediate'); // 'immediate' or 'scheduled'
 
             useEffect(() => {
                 if (isAdminLoggedIn) {
@@ -456,16 +526,18 @@
 
             const loadAdminData = async () => {
                 try {
-                    const [studentsRes, teamsRes, votesRes] = await Promise.all([
+                    const [studentsRes, teamsRes, votesRes, configRes] = await Promise.all([
                         fetch('/api/admin/students'),
                         fetch('/api/admin/teams'),
-                        fetch('/api/admin/votes')
+                        fetch('/api/admin/votes'),
+                        fetch('/api/admin/vote-config')
                     ]);
 
-                    const [studentsData, teamsData, votesData] = await Promise.all([
+                    const [studentsData, teamsData, votesData, configData] = await Promise.all([
                         studentsRes.json(),
                         teamsRes.json(),
-                        votesRes.json()
+                        votesRes.json(),
+                        configRes.json()
                     ]);
 
                     setStudents(studentsData);
@@ -475,6 +547,13 @@
                         total_votes: votesData.total_votes,
                         total_students: votesData.total_students,
                         voted_students: votesData.voted_students
+                    });
+                    setVoteConfig(configData.config || {
+                        is_active: false,
+                        start_time: null,
+                        end_time: null,
+                        duration_minutes: 60,
+                        vote_mode: 'single'
                     });
                 } catch (error) {
                     showMessage('데이터를 불러오는데 실패했습니다.', 'error');
@@ -549,7 +628,153 @@
                 window.location.href = '/api/admin/download';
             };
 
+            const handleStartVote = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                
+                const formData = new FormData(e.target);
+                const password = formData.get('admin_password');
+                const duration = parseInt(formData.get('duration_minutes')) || 60;
+                const voteMode = formData.get('vote_mode') || 'single';
+                const startMode = formData.get('start_mode') || 'immediate';
+                const startTime = formData.get('start_time');
+                const endTime = formData.get('end_time');
+
+                try {
+                    let response;
+                    if (startMode === 'immediate') {
+                        response = await fetch('/api/admin/start-vote', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                                admin_password: password,
+                                duration_minutes: duration,
+                                vote_mode: voteMode
+                            })
+                        });
+                    } else {
+                        // 시간 설정 모드
+                        response = await fetch('/api/admin/set-vote-time', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                                admin_password: password,
+                                start_time: startTime,
+                                end_time: endTime,
+                                vote_mode: voteMode
+                            })
+                        });
+                    }
+
+                    const data = await response.json();
+                    if (data.success) {
+                        showMessage(data.message);
+                        setVoteConfig(data.config);
+                        setShowVoteControlModal(false);
+                    } else {
+                        showMessage(data.message, 'error');
+                    }
+                } catch (error) {
+                    showMessage('투표 시작 중 오류가 발생했습니다.', 'error');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleStopVote = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                
+                const formData = new FormData(e.target);
+                const password = formData.get('admin_password');
+
+                try {
+                    const response = await fetch('/api/admin/stop-vote', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ admin_password: password })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        showMessage(data.message);
+                        setVoteConfig(data.config);
+                        setShowVoteControlModal(false);
+                    } else {
+                        showMessage(data.message, 'error');
+                    }
+                } catch (error) {
+                    showMessage('투표 종료 중 오류가 발생했습니다.', 'error');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleSetTime = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                
+                const formData = new FormData(e.target);
+                const password = formData.get('admin_password');
+                const startTime = formData.get('start_time');
+                const endTime = formData.get('end_time');
+
+                try {
+                    const response = await fetch('/api/admin/set-vote-time', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            admin_password: password,
+                            start_time: startTime,
+                            end_time: endTime
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        showMessage(data.message);
+                        setVoteConfig(data.config);
+                        setShowSetTimeModal(false);
+                    } else {
+                        showMessage(data.message, 'error');
+                    }
+                } catch (error) {
+                    showMessage('투표 시간 설정 중 오류가 발생했습니다.', 'error');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            // 공동 순위를 고려한 팀 정렬 및 순위 계산
             const sortedTeams = [...teams].sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0));
+            
+            // 순위 계산 로직 (공동 순위 처리)
+            const finalTeamsWithRank = [];
+            let currentRank = 1;
+            
+            for (let i = 0; i < sortedTeams.length; i++) {
+                const team = sortedTeams[i];
+                
+                // 이전 팀과 득표수가 다르면 순위 업데이트
+                if (i > 0 && sortedTeams[i-1].vote_count !== team.vote_count) {
+                    currentRank = i + 1;
+                }
+                
+                finalTeamsWithRank.push({
+                    ...team,
+                    rank: currentRank
+                });
+            }
+            
+            // 등수별 색상 결정 함수
+            const getRankColor = (rank) => {
+                switch(rank) {
+                    case 1: return 'bg-yellow-500'; // Gold
+                    case 2: return 'bg-gray-400'; // Silver
+                    case 3: return 'bg-orange-600'; // Bronze
+                    default: return 'bg-blue-500'; // Default
+                }
+            };
 
             if (!isAdminLoggedIn) {
                 return (
@@ -653,6 +878,232 @@
                         </div>
                     )}
 
+                    {/* 투표 제어 모달 */}
+                    {showVoteControlModal && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+                                <div className="p-6 border-b border-gray-200">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-xl font-bold text-gray-800">
+                                            {voteConfig.is_active ? '투표 종료' : '투표 시작'}
+                                        </h3>
+                                        <button
+                                            onClick={() => setShowVoteControlModal(false)}
+                                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                        >
+                                            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <form onSubmit={voteConfig.is_active ? handleStopVote : handleStartVote} className="p-6">
+                                    <div className="mb-6">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            관리자 비밀번호
+                                        </label>
+                                        <input
+                                            type="password"
+                                            name="admin_password"
+                                            required
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="비밀번호 입력"
+                                            autoFocus
+                                        />
+                                    </div>
+                                    {!voteConfig.is_active && (
+                                        <>
+                                            <div className="mb-4">
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    투표 방식
+                                                </label>
+                                                <select
+                                                    name="vote_mode"
+                                                    defaultValue="single"
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                >
+                                                    <option value="single">1개 팀 선택</option>
+                                                    <option value="multiple">3개 팀 선택</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div className="mb-4">
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    투표 시작 방식
+                                                </label>
+                                                <div className="space-y-2">
+                                                    <label className="flex items-center">
+                                                        <input
+                                                            type="radio"
+                                                            name="start_mode"
+                                                            value="immediate"
+                                                            defaultChecked
+                                                            onChange={(e) => setVoteStartMode(e.target.value)}
+                                                            className="mr-2"
+                                                        />
+                                                        즉시 시작 (지정한 시간 동안)
+                                                    </label>
+                                                    <label className="flex items-center">
+                                                        <input
+                                                            type="radio"
+                                                            name="start_mode"
+                                                            value="scheduled"
+                                                            onChange={(e) => setVoteStartMode(e.target.value)}
+                                                            className="mr-2"
+                                                        />
+                                                        시간 설정 (특정 시간대에 진행)
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            {voteStartMode === 'immediate' ? (
+                                                <div className="mb-6">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        투표 시간 (분)
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        name="duration_minutes"
+                                                        defaultValue={60}
+                                                        min="1"
+                                                        max="1440"
+                                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                        placeholder="투표 진행 시간 (분)"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <div className="mb-4">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                            시작 시간
+                                                        </label>
+                                                        <input
+                                                            type="time"
+                                                            name="start_time"
+                                                            required={voteStartMode === 'scheduled'}
+                                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                        />
+                                                    </div>
+                                                    <div className="mb-6">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                            종료 시간
+                                                        </label>
+                                                        <input
+                                                            type="time"
+                                                            name="end_time"
+                                                            required={voteStartMode === 'scheduled'}
+                                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                        />
+                                                    </div>
+                                                </>
+                                            )}
+                                        </>
+                                    )}
+                                    <div className="flex space-x-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowVoteControlModal(false)}
+                                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                                        >
+                                            취소
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={loading}
+                                            className={`flex-1 px-4 py-2 rounded-lg font-medium text-white transition-colors ${
+                                                loading 
+                                                    ? 'bg-gray-400 cursor-not-allowed' 
+                                                    : voteConfig.is_active 
+                                                        ? 'bg-red-500 hover:bg-red-600'
+                                                        : 'bg-green-500 hover:bg-green-600'
+                                            }`}
+                                        >
+                                            {loading ? '처리 중...' : (voteConfig.is_active ? '투표 종료' : '투표 시작')}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 시간 설정 모달 */}
+                    {showSetTimeModal && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+                                <div className="p-6 border-b border-gray-200">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-xl font-bold text-gray-800">투표 시간 설정</h3>
+                                        <button
+                                            onClick={() => setShowSetTimeModal(false)}
+                                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                        >
+                                            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <form onSubmit={handleSetTime} className="p-6">
+                                    <div className="mb-6">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            관리자 비밀번호
+                                        </label>
+                                        <input
+                                            type="password"
+                                            name="admin_password"
+                                            required
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="비밀번호 입력"
+                                            autoFocus
+                                        />
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            시작 시간
+                                        </label>
+                                        <input
+                                            type="time"
+                                            name="start_time"
+                                            required
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                    <div className="mb-6">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            종료 시간
+                                        </label>
+                                        <input
+                                            type="time"
+                                            name="end_time"
+                                            required
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        />
+                                    </div>
+                                    <div className="flex space-x-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowSetTimeModal(false)}
+                                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                                        >
+                                            취소
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={loading}
+                                            className={`flex-1 px-4 py-2 rounded-lg font-medium text-white transition-colors ${
+                                                loading 
+                                                    ? 'bg-gray-400 cursor-not-allowed' 
+                                                    : 'bg-blue-500 hover:bg-blue-600'
+                                            }`}
+                                        >
+                                            {loading ? '설정 중...' : '시간 설정'}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-2xl font-bold text-gray-800">관리자 대시보드</h2>
@@ -679,6 +1130,41 @@
                                 <p className="text-3xl font-bold text-purple-600">
                                     {stats.total_students > 0 ? Math.round(stats.voted_students / stats.total_students * 100) : 0}%
                                 </p>
+                            </div>
+                        </div>
+
+                        {/* 투표 상태 */}
+                        <div className="mb-6">
+                            <div className={`p-4 rounded-lg border-2 ${
+                                voteConfig.is_active ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                            }`}>
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <h3 className={`text-lg font-semibold ${
+                                            voteConfig.is_active ? 'text-green-800' : 'text-red-800'
+                                        }`}>
+                                            투표 상태: {voteConfig.is_active ? '활성화' : '비활성화'}
+                                        </h3>
+                                        {voteConfig.start_time && voteConfig.end_time && (
+                                            <p className="text-sm text-gray-600 mt-1">
+                                                시간: {voteConfig.start_time} ~ {voteConfig.end_time} | 
+                                                방식: {voteConfig.vote_mode === 'single' ? '1개 팀 선택' : '3개 팀 선택'}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="flex space-x-2">
+                                        <button
+                                            onClick={() => setShowVoteControlModal(true)}
+                                            className={`px-4 py-2 rounded-lg font-medium text-white transition-colors ${
+                                                voteConfig.is_active 
+                                                    ? 'bg-red-500 hover:bg-red-600' 
+                                                    : 'bg-green-500 hover:bg-green-600'
+                                            }`}
+                                        >
+                                            {voteConfig.is_active ? '투표 종료' : '투표 시작/설정'}
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -736,15 +1222,11 @@
                                 <div>
                                     <h3 className="text-xl font-bold text-gray-800 mb-4">팀별 투표 결과</h3>
                                     <div className="space-y-4">
-                                        {sortedTeams.map((team, index) => (
+                                        {finalTeamsWithRank.map((team) => (
                                             <div key={team.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                                                 <div className="flex items-center space-x-4">
-                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
-                                                        index === 0 ? 'bg-yellow-500' : 
-                                                        index === 1 ? 'bg-gray-400' : 
-                                                        index === 2 ? 'bg-orange-500' : 'bg-blue-500'
-                                                    }`}>
-                                                        {index + 1}
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${getRankColor(team.rank)}`}>
+                                                        {team.rank}
                                                     </div>
                                                     <div>
                                                         <h4 className="font-semibold text-gray-800">{team.name}</h4>
@@ -825,21 +1307,29 @@
                                 <div className="flex items-start space-x-3">
                                     <span className="font-bold text-blue-600">2.</span>
                                     <div>
-                                        <p className="font-medium">팀 선택</p>
-                                        <p className="text-sm">투표하고 싶은 팀을 클릭하여 선택하세요. (본인 팀 제외)</p>
+                                        <p className="font-medium">투표 방식 확인</p>
+                                        <p className="text-sm">관리자가 설정한 투표 방식을 확인하세요. (1개 팀 선택 또는 3개 팀 선택)</p>
                                     </div>
                                 </div>
                                 
                                 <div className="flex items-start space-x-3">
                                     <span className="font-bold text-blue-600">3.</span>
                                     <div>
-                                        <p className="font-medium">투표하기</p>
-                                        <p className="text-sm">선택한 팀에 투표 버튼을 클릭하여 투표를 완료하세요.</p>
+                                        <p className="font-medium">팀 선택</p>
+                                        <p className="text-sm">투표하고 싶은 팀을 클릭하여 선택하세요. (본인 팀 제외, 3개 팀 방식시 순서대로 번호 표시)</p>
                                     </div>
                                 </div>
                                 
                                 <div className="flex items-start space-x-3">
                                     <span className="font-bold text-blue-600">4.</span>
+                                    <div>
+                                        <p className="font-medium">투표하기</p>
+                                        <p className="text-sm">필요한 개수만큼 팀을 선택한 후 투표 버튼을 클릭하여 투표를 완료하세요.</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-start space-x-3">
+                                    <span className="font-bold text-blue-600">5.</span>
                                     <div>
                                         <p className="font-medium">투표 결과 확인</p>
                                         <p className="text-sm">투표 직후 5초간 선택한 팀 정보가 표시됩니다.</p>
@@ -847,7 +1337,7 @@
                                 </div>
                                 
                                 <div className="flex items-start space-x-3">
-                                    <span className="font-bold text-blue-600">5.</span>
+                                    <span className="font-bold text-blue-600">6.</span>
                                     <div>
                                         <p className="font-medium">자동 화면 전환</p>
                                         <p className="text-sm">카운트다운 후 자동으로 "투표 완료" 상태로 변경됩니다.</p>
@@ -863,6 +1353,9 @@
                                 <li>• 본인 팀에는 투표할 수 없습니다.</li>
                                 <li>• 투표 후에는 변경할 수 없습니다.</li>
                                 <li>• 정확한 이름과 비밀번호를 입력해야 합니다.</li>
+                                <li>• 3개 팀 선택 방식에서는 반드시 3개 팀을 모두 선택해야 합니다.</li>
+                                <li>• 같은 팀을 중복으로 선택할 수 없습니다.</li>
+                                <li>• 투표가 비활성화된 상태에서는 투표할 수 없습니다.</li>
                             </ul>
                         </div>
                         
@@ -870,6 +1363,8 @@
                             <h4 className="text-lg font-semibold text-green-800 mb-3">💡 팁</h4>
                             <ul className="space-y-2 text-green-700 text-sm">
                                 <li>• 각 팀의 프로젝트 이름을 확인하고 신중하게 선택하세요.</li>
+                                <li>• 3개 팀 선택 방식에서는 선택 순서가 번호로 표시됩니다.</li>
+                                <li>• 선택된 팀은 파란색으로 하이라이트되고 체크 표시가 나타납니다.</li>
                                 <li>• 투표 직후 5초간 선택한 팀 정보를 확인할 수 있습니다.</li>
                                 <li>• 카운트다운 중에 화면이 자동으로 바뀔 것을 미리 알 수 있습니다.</li>
                                 <li>• 문제가 발생하면 관리자에게 문의하세요.</li>
@@ -894,21 +1389,29 @@
                                 <div className="flex items-start space-x-3">
                                     <span className="font-bold text-indigo-600">2.</span>
                                     <div>
-                                        <p className="font-medium">실시간 통계 확인</p>
-                                        <p className="text-sm">전체 학생 수, 투표 완료 수, 투표율을 실시간으로 확인할 수 있습니다.</p>
+                                        <p className="font-medium">투표 시작/설정</p>
+                                        <p className="text-sm">'투표 시작/설정' 버튼으로 투표 방식(1개/3개 팀 선택)과 시작 방식(즉시 시작/시간 설정)을 선택할 수 있습니다.</p>
                                     </div>
                                 </div>
                                 
                                 <div className="flex items-start space-x-3">
                                     <span className="font-bold text-indigo-600">3.</span>
                                     <div>
-                                        <p className="font-medium">투표 결과 조회</p>
-                                        <p className="text-sm">'투표 결과' 탭에서 팀별 득표 수를 순위별로 확인할 수 있습니다.</p>
+                                        <p className="font-medium">실시간 투표 상태 확인</p>
+                                        <p className="text-sm">투표 활성화 상태, 진행 시간, 투표 방식을 실시간으로 확인할 수 있습니다.</p>
                                     </div>
                                 </div>
                                 
                                 <div className="flex items-start space-x-3">
                                     <span className="font-bold text-indigo-600">4.</span>
+                                    <div>
+                                        <p className="font-medium">투표 결과 조회</p>
+                                        <p className="text-sm">'투표 결과' 탭에서 팀별 득표 수를 순위별로 확인할 수 있습니다. 공동 순위 지원 및 등수별 색상 표시.</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-start space-x-3">
+                                    <span className="font-bold text-indigo-600">5.</span>
                                     <div>
                                         <p className="font-medium">학생 현황 관리</p>
                                         <p className="text-sm">'학생 현황' 탭에서 각 학생의 투표 상태를 확인할 수 있습니다.</p>
@@ -916,7 +1419,7 @@
                                 </div>
                                 
                                 <div className="flex items-start space-x-3">
-                                    <span className="font-bold text-indigo-600">5.</span>
+                                    <span className="font-bold text-indigo-600">6.</span>
                                     <div>
                                         <p className="font-medium">보안 투표 초기화</p>
                                         <p className="text-sm">모달창에서 비밀번호를 재입력하여 안전하게 투표를 초기화할 수 있습니다.</p>
@@ -926,19 +1429,67 @@
                         </div>
                         
                         <div className="bg-purple-50 p-4 rounded-lg">
-                            <h4 className="text-lg font-semibold text-purple-800 mb-3">🛠️ 관리 기능</h4>
+                            <h4 className="text-lg font-semibold text-purple-800 mb-3">🛠️ 투표 설정 옵션</h4>
                             <div className="space-y-2 text-purple-700 text-sm">
                                 <div className="flex items-center space-x-2">
                                     <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
+                                    <p><strong>투표 방식:</strong> 1개 팀 선택 또는 3개 팀 선택 방식을 설정할 수 있습니다.</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
+                                    <p><strong>즉시 시작:</strong> 관리자가 설정한 시간(분) 동안 즉시 투표를 시작합니다.</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
+                                    <p><strong>시간 설정:</strong> 특정 시간대(예: 09:00~17:00)에 투표가 진행되도록 예약할 수 있습니다.</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
+                                    <p><strong>실시간 제어:</strong> 투표를 언제든지 종료하거나 다시 시작할 수 있습니다.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-green-50 p-4 rounded-lg">
+                            <h4 className="text-lg font-semibold text-green-800 mb-3">📊 관리 기능</h4>
+                            <div className="space-y-2 text-green-700 text-sm">
+                                <div className="flex items-center space-x-2">
+                                    <span className="w-2 h-2 bg-green-600 rounded-full"></span>
                                     <p><strong>보안 투표 초기화:</strong> 모달창을 통한 이중 확인으로 모든 투표 데이터를 안전하게 삭제합니다.</p>
                                 </div>
                                 <div className="flex items-center space-x-2">
-                                    <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
+                                    <span className="w-2 h-2 bg-green-600 rounded-full"></span>
                                     <p><strong>결과 다운로드:</strong> 투표 결과를 CSV 파일로 다운로드할 수 있습니다.</p>
                                 </div>
                                 <div className="flex items-center space-x-2">
-                                    <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
+                                    <span className="w-2 h-2 bg-green-600 rounded-full"></span>
                                     <p><strong>새로고침:</strong> 최신 데이터로 화면을 업데이트합니다.</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+                                    <p><strong>실시간 통계:</strong> 전체 학생 수, 투표 완료 수, 투표율을 실시간으로 확인할 수 있습니다.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-amber-50 p-4 rounded-lg">
+                            <h4 className="text-lg font-semibold text-amber-800 mb-3">🏆 순위 시스템</h4>
+                            <div className="space-y-2 text-amber-700 text-sm">
+                                <div className="flex items-center space-x-2">
+                                    <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                                    <p><strong>1등 (금색):</strong> 최고 득표 팀, 동점 시 공동 1등 처리</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
+                                    <p><strong>2등 (은색):</strong> 두 번째 득표 팀</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <div className="w-4 h-4 bg-orange-600 rounded-full"></div>
+                                    <p><strong>3등 (동색):</strong> 세 번째 득표 팀</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <span className="w-2 h-2 bg-amber-600 rounded-full"></span>
+                                    <p><strong>공동 순위:</strong> 동일 득표 시 같은 순위, 다음 순위는 적절히 건너뛰기 (예: 공동1등 2팀 → 다음은 3등)</p>
                                 </div>
                             </div>
                         </div>
@@ -946,10 +1497,12 @@
                         <div className="bg-red-50 p-4 rounded-lg">
                             <h4 className="text-lg font-semibold text-red-800 mb-3">⚠️ 중요 사항</h4>
                             <ul className="space-y-2 text-red-700 text-sm">
+                                <li>• 투표 방식은 투표 시작 전에만 설정할 수 있습니다.</li>
+                                <li>• 시간 설정 모드에서는 종료 시간이 시작 시간보다 늦어야 합니다.</li>
                                 <li>• 투표 초기화는 되돌릴 수 없으니 신중하게 사용하세요.</li>
                                 <li>• 초기화 시 모달창에서 경고 메시지를 반드시 확인하세요.</li>
                                 <li>• 비밀번호 입력 시 화면에 표시되지 않아 보안이 강화되었습니다.</li>
-                                <li>• CSV 다운로드에는 투표자, 소속팀, 투표받은팀, 투표시간 정보가 포함됩니다.</li>
+                                <li>• CSV 다운로드에는 투표자, 소속팀, 투표받은팀, 투표시간, 투표방식 정보가 포함됩니다.</li>
                                 <li>• 관리자 비밀번호는 보안상 주의깊게 관리하세요.</li>
                                 <li>• 실시간 데이터 확인을 위해 주기적으로 새로고침을 활용하세요.</li>
                             </ul>

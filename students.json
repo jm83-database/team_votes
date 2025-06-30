@@ -6,7 +6,12 @@
     "team_id": 1,
     "has_voted": false,
     "voted_team": null,
-    "vote_timestamp": null
+    "vote_timestamp": null,
+    "voted_teams": [
+      2,
+      5,
+      3
+    ]
   },
   {
     "id": 2,
