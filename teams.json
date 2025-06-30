@@ -2,7 +2,7 @@
   {
     "id": 1,
     "name": "기사단의 불사조",
-    "project_name": "기사단의 불사조",
+    "project_name": "예비 귀농인을 위한 맞춤 AI 네비게이터",
     "members": [
       1,
       2,
@@ -15,7 +15,7 @@
   {
     "id": 2,
     "name": "Outlier",
-    "project_name": "Outlier",
+    "project_name": "AI 기반 국회 정보 단순화 디지털플랫폼",
     "members": [
       6,
       7,
@@ -29,7 +29,7 @@
   {
     "id": 3,
     "name": "조기졸업",
-    "project_name": "조기졸업",
+    "project_name": "AI-DOL(아이돌)",
     "members": [
       12,
       13,
@@ -43,7 +43,7 @@
   {
     "id": 4,
     "name": "난 NULL을 4랑하조",
-    "project_name": "난 NULL을 4랑하조",
+    "project_name": "GongPick",
     "members": [
       18,
       19,
@@ -55,7 +55,7 @@
   {
     "id": 5,
     "name": "perror",
-    "project_name": "perror",
+    "project_name": "공공데이터를 활용한 위험지역 회피 정보 제공 서비스",
     "members": [
       22,
       23,
@@ -67,7 +67,7 @@
   {
     "id": 6,
     "name": "검은조직",
-    "project_name": "검은조직",
+    "project_name": "AI 기반 시청각 장애인 간의 의사소통 지원 서비스",
     "members": [
       26,
       27,
