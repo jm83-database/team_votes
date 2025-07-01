@@ -320,7 +320,7 @@
                 }
             };
             
-            return { loading, error, request };
+            return { loading, setLoading, error, request };
         }
         
         // 카운트다운 훅
@@ -1080,8 +1080,9 @@
                     }
                 } catch (error) {
                     showMessage('서버 연결에 실패했습니다.', 'error');
+                } finally {
+                    setLoading(false);
                 }
-                setLoading(false);
             };
 
             const handleReset = () => {
