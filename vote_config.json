@@ -1,7 +1,7 @@
 {
   "is_active": false,
-  "start_time": "01:39",
-  "end_time": "01:41",
-  "duration_minutes": 2,
-  "vote_mode": "multiple"
+  "start_time": "01:55",
+  "end_time": "02:55",
+  "duration_minutes": 60,
+  "vote_mode": "single"
 }

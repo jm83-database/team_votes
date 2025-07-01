@@ -100,19 +100,320 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        function App() {
-            const [mode, setMode] = useState('student'); // 'student' or 'admin'
-            const [currentUser, setCurrentUser] = useState(null);
-            const [loading, setLoading] = useState(false);
-            const [message, setMessage] = useState('');
-            const [messageType, setMessageType] = useState(''); // 'success' or 'error'
-            const [showHelp, setShowHelp] = useState(false);
+        // ===== 상수 정의 =====
+        const CONSTANTS = {
+            ADMIN_PASSWORD: 'elixirrteacher',
+            VOTE_RESULT_DISPLAY_TIME: 5,
+            TIMER_INTERVAL: 1000,
+            MESSAGE_DISPLAY_TIME: 4000,
+            
+            VOTE_MODES: {
+                SINGLE: 'single',
+                MULTIPLE: 'multiple'
+            },
+            
+            API_ENDPOINTS: {
+                LOGIN: '/api/login',
+                VOTE: '/api/vote',
+                TEAMS: '/api/teams',
+                ADMIN_LOGIN: '/api/admin/login',
+                ADMIN_STUDENTS: '/api/admin/students',
+                ADMIN_TEAMS: '/api/admin/teams',
+                ADMIN_VOTES: '/api/admin/votes',
+                ADMIN_VOTE_CONFIG: '/api/admin/vote-config',
+                ADMIN_START_VOTE: '/api/admin/start-vote',
+                ADMIN_STOP_VOTE: '/api/admin/stop-vote',
+                ADMIN_SET_VOTE_TIME: '/api/admin/set-vote-time',
+                ADMIN_RESET: '/api/admin/reset',
+                ADMIN_DOWNLOAD: '/api/admin/download'
+            },
+            
+            RANK_COLORS: {
+                1: 'bg-yellow-500',    // Gold
+                2: 'bg-gray-400',      // Silver
+                3: 'bg-orange-600',    // Bronze
+                DEFAULT: 'bg-blue-500'
+            },
+            
+            VOTE_COUNTS: {
+                SINGLE: 1,
+                MULTIPLE: 3
+            }
+        };
 
+        // ===== 유틸리티 함수들 =====
+        const utils = {
+            // 시간 포맷팅
+            formatTime: (hours, minutes, seconds) => {
+                if (hours > 0) return `${hours}시간 ${minutes}분 ${seconds}초`;
+                if (minutes > 0) return `${minutes}분 ${seconds}초`;
+                return `${seconds}초`;
+            },
+            
+            // 순위 계산
+            calculateTeamRanks: (teams) => {
+                const sorted = [...teams].sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0));
+                const rankedTeams = [];
+                let currentRank = 1;
+                
+                for (let i = 0; i < sorted.length; i++) {
+                    const team = sorted[i];
+                    
+                    if (i > 0 && sorted[i-1].vote_count !== team.vote_count) {
+                        currentRank = i + 1;
+                    }
+                    
+                    rankedTeams.push({ ...team, rank: currentRank });
+                }
+                
+                return rankedTeams;
+            },
+            
+            // 투표 검증
+            validateVote: (selectedTeams, voteMode) => {
+                const requiredCount = voteMode === CONSTANTS.VOTE_MODES.SINGLE ? 
+                    CONSTANTS.VOTE_COUNTS.SINGLE : CONSTANTS.VOTE_COUNTS.MULTIPLE;
+                return selectedTeams.length === requiredCount;
+            },
+            
+            // 순위별 색상
+            getRankColor: (rank) => {
+                return CONSTANTS.RANK_COLORS[rank] || CONSTANTS.RANK_COLORS.DEFAULT;
+            },
+            
+            // 투표한 팀 이름들 조합
+            getVotedTeamNames: (student, teams) => {
+                if (!student.has_voted) return '-';
+                
+                if (student.voted_teams && Array.isArray(student.voted_teams)) {
+                    return student.voted_teams
+                        .map(teamId => teams.find(t => t.id === teamId)?.name)
+                        .filter(Boolean)
+                        .join(', ');
+                }
+                
+                const team = teams.find(t => t.id === student.voted_team);
+                return team?.name || '-';
+            },
+            
+            // 투표 방식 텍스트
+            getVoteModeText: (voteMode) => {
+                return voteMode === CONSTANTS.VOTE_MODES.SINGLE ? '1개 팀 선택' : '3개 팀 선택';
+            },
+            
+            // 투표 가능 여부 체크
+            canVote: (selectedTeams, voteMode) => {
+                const requiredCount = voteMode === CONSTANTS.VOTE_MODES.SINGLE ? 
+                    CONSTANTS.VOTE_COUNTS.SINGLE : CONSTANTS.VOTE_COUNTS.MULTIPLE;
+                return selectedTeams.length === requiredCount;
+            }
+        };
+
+        // ===== API 함수들 =====
+        const api = {
+            // 기본 요청 함수
+            async request(url, options = {}) {
+                try {
+                    const response = await fetch(url, {
+                        headers: { 'Content-Type': 'application/json' },
+                        ...options
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.message || `HTTP ${response.status}`);
+                    }
+                    
+                    return data;
+                } catch (error) {
+                    console.error(`API 요청 실패 (${url}):`, error);
+                    throw error;
+                }
+            },
+            
+            // POST 요청
+            post: (url, data) => api.request(url, {
+                method: 'POST',
+                body: JSON.stringify(data)
+            }),
+            
+            // GET 요청
+            get: (url) => api.request(url),
+            
+            // 학생 관련 API
+            student: {
+                login: (credentials) => api.post(CONSTANTS.API_ENDPOINTS.LOGIN, credentials),
+                getVotableTeams: (studentId) => api.get(`${CONSTANTS.API_ENDPOINTS.TEAMS}/${studentId}`),
+                vote: (voteData) => api.post(CONSTANTS.API_ENDPOINTS.VOTE, voteData)
+            },
+            
+            // 관리자 관련 API
+            admin: {
+                login: (password) => api.post(CONSTANTS.API_ENDPOINTS.ADMIN_LOGIN, { admin_password: password }),
+                getStudents: () => api.get(CONSTANTS.API_ENDPOINTS.ADMIN_STUDENTS),
+                getTeams: () => api.get(CONSTANTS.API_ENDPOINTS.ADMIN_TEAMS),
+                getVotes: () => api.get(CONSTANTS.API_ENDPOINTS.ADMIN_VOTES),
+                getVoteConfig: () => api.get(CONSTANTS.API_ENDPOINTS.ADMIN_VOTE_CONFIG),
+                
+                startVote: (config) => api.post(CONSTANTS.API_ENDPOINTS.ADMIN_START_VOTE, {
+                    admin_password: CONSTANTS.ADMIN_PASSWORD,
+                    ...config
+                }),
+                
+                stopVote: () => api.post(CONSTANTS.API_ENDPOINTS.ADMIN_STOP_VOTE, {
+                    admin_password: CONSTANTS.ADMIN_PASSWORD
+                }),
+                
+                setVoteTime: (timeConfig) => api.post(CONSTANTS.API_ENDPOINTS.ADMIN_SET_VOTE_TIME, {
+                    admin_password: CONSTANTS.ADMIN_PASSWORD,
+                    ...timeConfig
+                }),
+                
+                resetVotes: () => api.post(CONSTANTS.API_ENDPOINTS.ADMIN_RESET, {
+                    admin_password: CONSTANTS.ADMIN_PASSWORD
+                }),
+                
+                downloadResults: () => {
+                    window.location.href = CONSTANTS.API_ENDPOINTS.ADMIN_DOWNLOAD;
+                }
+            }
+        };
+
+        // ===== 커스텀 훅들 =====
+        
+        // 메시지 표시 훅
+        function useMessage() {
+            const [message, setMessage] = useState('');
+            const [messageType, setMessageType] = useState('');
+            
             const showMessage = (msg, type = 'success') => {
                 setMessage(msg);
                 setMessageType(type);
-                setTimeout(() => setMessage(''), 4000);
+                setTimeout(() => setMessage(''), CONSTANTS.MESSAGE_DISPLAY_TIME);
             };
+            
+            return { message, messageType, showMessage };
+        }
+        
+        // API 호출 훅
+        function useApi() {
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
+            
+            const request = async (apiCall, onSuccess, onError) => {
+                setLoading(true);
+                setError(null);
+                
+                try {
+                    const result = await apiCall();
+                    if (onSuccess) onSuccess(result);
+                    return result;
+                } catch (err) {
+                    setError(err.message);
+                    if (onError) onError(err);
+                    throw err;
+                } finally {
+                    setLoading(false);
+                }
+            };
+            
+            return { loading, error, request };
+        }
+        
+        // 카운트다운 훅
+        function useCountdown(initialTime) {
+            const [countdown, setCountdown] = useState(initialTime);
+            
+            useEffect(() => {
+                if (countdown <= 0) return;
+                
+                const timer = setInterval(() => {
+                    setCountdown(prev => {
+                        if (prev <= 1) {
+                            clearInterval(timer);
+                            return 0;
+                        }
+                        return prev - 1;
+                    });
+                }, CONSTANTS.TIMER_INTERVAL);
+                
+                return () => clearInterval(timer);
+            }, [countdown]);
+            
+            const startCountdown = (time) => {
+                setCountdown(time);
+            };
+            
+            return { countdown, startCountdown };
+        }
+        
+        // 투표 타이머 훅
+        function useVoteTimer(endTime, isActive = true) {
+            const [timeRemaining, setTimeRemaining] = useState(null);
+            
+            useEffect(() => {
+                if (!endTime || !isActive) {
+                    setTimeRemaining(null);
+                    return;
+                }
+                
+                const interval = setInterval(() => {
+                    const now = new Date();
+                    const [hours, minutes] = endTime.split(':').map(Number);
+                    const endDateTime = new Date();
+                    endDateTime.setHours(hours, minutes, 0, 0);
+                    
+                    // 만약 종료시간이 현재시간보다 이전이면 다음날로 가정
+                    if (endDateTime <= now) {
+                        endDateTime.setDate(endDateTime.getDate() + 1);
+                    }
+                    
+                    const diff = endDateTime - now;
+                    if (diff <= 0) {
+                        setTimeRemaining('투표가 종료되었습니다');
+                        clearInterval(interval);
+                    } else {
+                        const h = Math.floor(diff / (1000 * 60 * 60));
+                        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        const s = Math.floor((diff % (1000 * 60)) / 1000);
+                        setTimeRemaining(utils.formatTime(h, m, s));
+                    }
+                }, CONSTANTS.TIMER_INTERVAL);
+                
+                return () => clearInterval(interval);
+            }, [endTime, isActive]);
+            
+            return timeRemaining;
+        }
+        
+        // 폼 데이터 훅
+        function useFormData(initialData = {}) {
+            const [formData, setFormData] = useState(initialData);
+            
+            const updateField = (name, value) => {
+                setFormData(prev => ({ ...prev, [name]: value }));
+            };
+            
+            const handleChange = (e) => {
+                const { name, value, type, checked } = e.target;
+                updateField(name, type === 'checkbox' ? checked : value);
+            };
+            
+            const resetForm = () => {
+                setFormData(initialData);
+            };
+            
+            return { formData, updateField, handleChange, resetForm };
+        }
+
+        function App() {
+            const [mode, setMode] = useState('student'); // 'student' or 'admin'
+            const [currentUser, setCurrentUser] = useState(null);
+            const [showHelp, setShowHelp] = useState(false);
+            
+            const { message, messageType, showMessage } = useMessage();
+            const { loading, request } = useApi();
 
             return (
                 <div className="min-h-screen">
@@ -231,14 +532,173 @@
             );
         }
 
-        function StudentMode({ currentUser, setCurrentUser, showMessage, loading, setLoading }) {
+        // ===== 재사용 가능한 UI 컴포넌트들 =====
+        
+        // 아이콘 컴포넌트들
+        function CloseIcon() {
+            return (
+                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            );
+        }
+        
+        function WarningIcon() {
+            return (
+                <svg className="w-5 h-5 text-red-500 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+            );
+        }
+        
+        // 기본 모달 컴포넌트
+        function Modal({ isOpen, onClose, title, children, maxWidth = "max-w-md" }) {
+            if (!isOpen) return null;
+            
+            return (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className={`bg-white rounded-xl shadow-2xl ${maxWidth} w-full max-h-screen overflow-hidden`}>
+                        <div className="p-6 border-b border-gray-200">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-xl font-bold text-gray-800">{title}</h3>
+                                <button
+                                    onClick={onClose}
+                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                >
+                                    <CloseIcon />
+                                </button>
+                            </div>
+                        </div>
+                        <div className="p-6">{children}</div>
+                    </div>
+                </div>
+            );
+        }
+        
+        // 확인 모달
+        function ConfirmModal({ isOpen, onClose, onConfirm, title, message, confirmText = "확인", cancelText = "취소", isDestructive = false, loading = false }) {
+            return (
+                <Modal isOpen={isOpen} onClose={onClose} title={title}>
+                    <div className="mb-6">
+                        {isDestructive && (
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                                <div className="flex">
+                                    <WarningIcon />
+                                    <div>
+                                        <h4 className="text-red-800 font-medium">경고</h4>
+                                        <p className="text-red-700 text-sm mt-1">
+                                            모든 투표 데이터가 삭제되며 복구할 수 없습니다.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        <p className="text-gray-700">{message}</p>
+                    </div>
+                    <div className="flex space-x-3">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={loading}
+                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        >
+                            {cancelText}
+                        </button>
+                        <button
+                            onClick={onConfirm}
+                            disabled={loading}
+                            className={`flex-1 px-4 py-2 rounded-lg font-medium text-white transition-colors disabled:opacity-50 ${
+                                isDestructive 
+                                    ? 'bg-red-500 hover:bg-red-600' 
+                                    : 'bg-blue-500 hover:bg-blue-600'
+                            }`}
+                        >
+                            {loading ? '처리 중...' : confirmText}
+                        </button>
+                    </div>
+                </Modal>
+            );
+        }
+        
+        // 폼 모달
+        function FormModal({ isOpen, onClose, title, onSubmit, children, submitText = "확인", loading = false }) {
+            return (
+                <Modal isOpen={isOpen} onClose={onClose} title={title}>
+                    <form onSubmit={onSubmit}>
+                        {children}
+                        <div className="flex space-x-3 mt-6">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                disabled={loading}
+                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                            >
+                                취소
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="flex-1 px-4 py-2 rounded-lg font-medium text-white transition-colors bg-blue-500 hover:bg-blue-600 disabled:opacity-50"
+                            >
+                                {loading ? '처리 중...' : submitText}
+                            </button>
+                        </div>
+                    </form>
+                </Modal>
+            );
+        }
+        
+        // 입력 필드 컴포넌트
+        function InputField({ label, type = "text", name, value, onChange, required = false, placeholder, autoFocus = false }) {
+            return (
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+                    <input
+                        type={type}
+                        name={name}
+                        value={value}
+                        onChange={onChange}
+                        required={required}
+                        placeholder={placeholder}
+                        autoFocus={autoFocus}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                </div>
+            );
+        }
+        
+        // 선택 필드 컴포넌트
+        function SelectField({ label, name, value, onChange, options, required = false }) {
+            return (
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+                    <select
+                        name={name}
+                        value={value}
+                        onChange={onChange}
+                        required={required}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                        {options.map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            );
+        }
+
+        function StudentMode({ currentUser, setCurrentUser, showMessage }) {
             const [teams, setTeams] = useState([]);
             const [selectedTeams, setSelectedTeams] = useState([]);
             const [justVoted, setJustVoted] = useState(false);
-            const [countdown, setCountdown] = useState(0);
-            const [voteMode, setVoteMode] = useState('single');
-            const [timeRemaining, setTimeRemaining] = useState(null);
+            const [voteMode, setVoteMode] = useState(CONSTANTS.VOTE_MODES.SINGLE);
             const [voteEndTime, setVoteEndTime] = useState(null);
+            
+            const { loading, request } = useApi();
+            const { countdown, startCountdown } = useCountdown(0);
+            const timeRemaining = useVoteTimer(voteEndTime, !currentUser?.has_voted);
 
             useEffect(() => {
                 if (currentUser) {
@@ -246,77 +706,36 @@
                 }
             }, [currentUser]);
 
-            useEffect(() => {
-                let interval;
-                if (voteEndTime && !currentUser?.has_voted) {
-                    interval = setInterval(() => {
-                        const now = new Date();
-                        const [hours, minutes] = voteEndTime.split(':').map(Number);
-                        const endTime = new Date();
-                        endTime.setHours(hours, minutes, 0, 0);
-                        
-                        // 만약 종료시간이 현재시간보다 이전이면 다음날로 가정
-                        if (endTime <= now) {
-                            endTime.setDate(endTime.getDate() + 1);
-                        }
-                        
-                        const diff = endTime - now;
-                        if (diff <= 0) {
-                            setTimeRemaining('투표가 종료되었습니다');
-                            clearInterval(interval);
-                        } else {
-                            const hours = Math.floor(diff / (1000 * 60 * 60));
-                            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                            
-                            if (hours > 0) {
-                                setTimeRemaining(`${hours}시간 ${minutes}분 ${seconds}초`);
-                            } else if (minutes > 0) {
-                                setTimeRemaining(`${minutes}분 ${seconds}초`);
-                            } else {
-                                setTimeRemaining(`${seconds}초`);
-                            }
-                        }
-                    }, 1000);
-                }
-                
-                return () => {
-                    if (interval) clearInterval(interval);
-                };
-            }, [voteEndTime, currentUser?.has_voted]);
 
             const loadVotableTeams = async () => {
-                try {
-                    const [teamsRes, configRes] = await Promise.all([
-                        fetch(`/api/teams/${currentUser.id}`),
-                        fetch('/api/admin/vote-config')
-                    ]);
-                    
-                    const [teamsData, configData] = await Promise.all([
-                        teamsRes.json(),
-                        configRes.json()
-                    ]);
-                    
-                    if (teamsData.success) {
-                        setTeams(teamsData.teams);
-                    } else {
-                        showMessage(teamsData.message, 'error');
-                    }
-                    
-                    if (configData.success) {
-                        setVoteMode(configData.config.vote_mode || 'single');
-                        if (configData.config.end_time) {
-                            setVoteEndTime(configData.config.end_time);
+                await request(
+                    async () => {
+                        const [teamsData, configData] = await Promise.all([
+                            api.student.getVotableTeams(currentUser.id),
+                            api.admin.getVoteConfig()
+                        ]);
+                        return { teamsData, configData };
+                    },
+                    ({ teamsData, configData }) => {
+                        if (teamsData.success) {
+                            setTeams(teamsData.teams);
                         }
+                        
+                        if (configData.success) {
+                            setVoteMode(configData.config.vote_mode || CONSTANTS.VOTE_MODES.SINGLE);
+                            if (configData.config.end_time) {
+                                setVoteEndTime(configData.config.end_time);
+                            }
+                        }
+                    },
+                    (error) => {
+                        showMessage('데이터를 불러오는데 실패했습니다.', 'error');
                     }
-                } catch (error) {
-                    showMessage('데이터를 불러오는데 실패했습니다.', 'error');
-                }
+                );
             };
 
             const handleLogin = async (e) => {
                 e.preventDefault();
-                setLoading(true);
                 
                 const formData = new FormData(e.target);
                 const loginData = {
@@ -324,91 +743,78 @@
                     password: formData.get('password')
                 };
 
-                try {
-                    const response = await fetch('/api/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(loginData)
-                    });
-                    
-                    const data = await response.json();
-                    if (data.success) {
-                        setCurrentUser(data.student);
-                        showMessage(`${data.student.name}님, 환영합니다!`);
-                    } else {
-                        showMessage(data.message, 'error');
+                await request(
+                    () => api.student.login(loginData),
+                    (data) => {
+                        if (data.success) {
+                            setCurrentUser(data.student);
+                            showMessage(`${data.student.name}님, 환영합니다!`);
+                        } else {
+                            showMessage(data.message, 'error');
+                        }
+                    },
+                    () => {
+                        showMessage('로그인 중 오류가 발생했습니다.', 'error');
                     }
-                } catch (error) {
-                    showMessage('로그인 중 오류가 발생했습니다.', 'error');
-                } finally {
-                    setLoading(false);
-                }
+                );
             };
 
             const handleTeamSelect = (team) => {
-                if (voteMode === 'single') {
+                if (voteMode === CONSTANTS.VOTE_MODES.SINGLE) {
                     setSelectedTeams([team]);
                 } else {
                     const isSelected = selectedTeams.some(t => t.id === team.id);
                     if (isSelected) {
                         setSelectedTeams(selectedTeams.filter(t => t.id !== team.id));
                     } else {
-                        if (selectedTeams.length < 3) {
+                        if (selectedTeams.length < CONSTANTS.VOTE_COUNTS.MULTIPLE) {
                             setSelectedTeams([...selectedTeams, team]);
                         } else {
-                            showMessage('3개 팀까지만 선택할 수 있습니다.', 'error');
+                            showMessage(`${CONSTANTS.VOTE_COUNTS.MULTIPLE}개 팀까지만 선택할 수 있습니다.`, 'error');
                         }
                     }
                 }
             };
 
             const handleVote = async () => {
-                const requiredCount = voteMode === 'single' ? 1 : 3;
-                if (selectedTeams.length !== requiredCount) {
-                    const message = voteMode === 'single' ? 
+                if (!utils.validateVote(selectedTeams, voteMode)) {
+                    const message = voteMode === CONSTANTS.VOTE_MODES.SINGLE ? 
                         '투표할 팀을 선택해주세요.' : 
-                        '정확히 3개 팀을 선택해주세요.';
+                        `정확히 ${CONSTANTS.VOTE_COUNTS.MULTIPLE}개 팀을 선택해주세요.`;
                     showMessage(message, 'error');
                     return;
                 }
 
-                setLoading(true);
-                try {
-                    const response = await fetch('/api/vote', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            student_id: currentUser.id,
-                            team_ids: selectedTeams.map(team => team.id)
-                        })
-                    });
-
-                    const data = await response.json();
-                    if (data.success) {
-                        showMessage(data.message);
-                        setJustVoted(true);
-                        setCurrentUser({...currentUser, has_voted: true, voted_teams: selectedTeams.map(t => t.id)});
-                        
-                        // 5초 카운트다운 시작
-                        setCountdown(5);
-                        const countdownInterval = setInterval(() => {
-                            setCountdown(prev => {
-                                if (prev <= 1) {
-                                    clearInterval(countdownInterval);
-                                    setJustVoted(false);
-                                    return 0;
-                                }
-                                return prev - 1;
+                await request(
+                    () => api.student.vote({
+                        student_id: currentUser.id,
+                        team_ids: selectedTeams.map(team => team.id)
+                    }),
+                    (data) => {
+                        if (data.success) {
+                            showMessage(data.message);
+                            setJustVoted(true);
+                            setCurrentUser({
+                                ...currentUser, 
+                                has_voted: true, 
+                                voted_teams: selectedTeams.map(t => t.id)
                             });
-                        }, 1000);
-                    } else {
-                        showMessage(data.message, 'error');
+                            
+                            // 카운트다운 시작
+                            startCountdown(CONSTANTS.VOTE_RESULT_DISPLAY_TIME);
+                            
+                            // 카운트다운 종료 후 justVoted 상태 변경
+                            setTimeout(() => {
+                                setJustVoted(false);
+                            }, CONSTANTS.VOTE_RESULT_DISPLAY_TIME * CONSTANTS.TIMER_INTERVAL);
+                        } else {
+                            showMessage(data.message, 'error');
+                        }
+                    },
+                    () => {
+                        showMessage('투표 중 오류가 발생했습니다.', 'error');
                     }
-                } catch (error) {
-                    showMessage('투표 중 오류가 발생했습니다.', 'error');
-                } finally {
-                    setLoading(false);
-                }
+                );
             };
 
             if (!currentUser) {
@@ -503,10 +909,10 @@
                                     안녕하세요, {currentUser.name}님!
                                 </h2>
                                 <p className="text-gray-600">
-                                    {voteMode === 'single' ? '투표할 팀을 1개 선택해주세요' : '투표할 팀을 3개 선택해주세요'}
-                                    {voteMode === 'multiple' && (
+                                    {utils.getVoteModeText(voteMode) === '1개 팀 선택' ? '투표할 팀을 1개 선택해주세요' : '투표할 팀을 3개 선택해주세요'}
+                                    {voteMode === CONSTANTS.VOTE_MODES.MULTIPLE && (
                                         <span className="ml-2 text-sm text-blue-600">
-                                            ({selectedTeams.length}/3 선택됨)
+                                            ({selectedTeams.length}/{CONSTANTS.VOTE_COUNTS.MULTIPLE} 선택됨)
                                         </span>
                                     )}
                                 </p>
@@ -564,19 +970,19 @@
                         <div className="text-center">
                             <button
                                 onClick={handleVote}
-                                disabled={loading || (voteMode === 'multiple' && selectedTeams.length !== 3)}
+                                disabled={loading || !utils.canVote(selectedTeams, voteMode)}
                                 className={`vote-button py-4 px-8 rounded-xl font-bold text-white text-lg transition-all ${
-                                    loading || (voteMode === 'multiple' && selectedTeams.length !== 3)
+                                    loading || !utils.canVote(selectedTeams, voteMode)
                                         ? 'bg-gray-400 cursor-not-allowed' 
                                         : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg'
                                 }`}
                             >
                                 {loading ? '투표 중...' : 
-                                 voteMode === 'single' ? 
+                                 voteMode === CONSTANTS.VOTE_MODES.SINGLE ? 
                                     `${selectedTeams[0]?.name}에 투표하기` :
-                                    selectedTeams.length === 3 ? 
-                                        `선택한 3개 팀에 투표하기` : 
-                                        `${3 - selectedTeams.length}개 팀 더 선택해주세요`
+                                    selectedTeams.length === CONSTANTS.VOTE_COUNTS.MULTIPLE ? 
+                                        `선택한 ${CONSTANTS.VOTE_COUNTS.MULTIPLE}개 팀에 투표하기` : 
+                                        `${CONSTANTS.VOTE_COUNTS.MULTIPLE - selectedTeams.length}개 팀 더 선택해주세요`
                                 }
                             </button>
                         </div>
@@ -831,36 +1237,8 @@
                 }
             };
 
-            // 공동 순위를 고려한 팀 정렬 및 순위 계산
-            const sortedTeams = [...teams].sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0));
-            
-            // 순위 계산 로직 (공동 순위 처리)
-            const finalTeamsWithRank = [];
-            let currentRank = 1;
-            
-            for (let i = 0; i < sortedTeams.length; i++) {
-                const team = sortedTeams[i];
-                
-                // 이전 팀과 득표수가 다르면 순위 업데이트
-                if (i > 0 && sortedTeams[i-1].vote_count !== team.vote_count) {
-                    currentRank = i + 1;
-                }
-                
-                finalTeamsWithRank.push({
-                    ...team,
-                    rank: currentRank
-                });
-            }
-            
-            // 등수별 색상 결정 함수
-            const getRankColor = (rank) => {
-                switch(rank) {
-                    case 1: return 'bg-yellow-500'; // Gold
-                    case 2: return 'bg-gray-400'; // Silver
-                    case 3: return 'bg-orange-600'; // Bronze
-                    default: return 'bg-blue-500'; // Default
-                }
-            };
+            // 순위가 계산된 팀 목록
+            const finalTeamsWithRank = utils.calculateTeamRanks(teams);
 
             if (!isAdminLoggedIn) {
                 return (
@@ -1303,7 +1681,7 @@
                                         {finalTeamsWithRank.map((team) => (
                                             <div key={team.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                                                 <div className="flex items-center space-x-4">
-                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${getRankColor(team.rank)}`}>
+                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${utils.getRankColor(team.rank)}`}>
                                                         {team.rank}
                                                     </div>
                                                     <div>
@@ -1348,14 +1726,7 @@
                                                             </span>
                                                         </td>
                                                         <td className="py-2">
-                                                            {student.has_voted ? 
-                                                                (student.voted_teams && Array.isArray(student.voted_teams) ?
-                                                                    student.voted_teams.map(teamId => 
-                                                                        teams.find(t => t.id === teamId)?.name
-                                                                    ).filter(Boolean).join(', ') :
-                                                                    teams.find(t => t.id === student.voted_team)?.name || '-'
-                                                                ) : '-'
-                                                            }
+                                                            {utils.getVotedTeamNames(student, teams)}
                                                         </td>
                                                         <td className="py-2">{student.vote_timestamp || '-'}</td>
                                                     </tr>
