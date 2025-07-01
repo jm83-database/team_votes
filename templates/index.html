@@ -8,9 +8,8 @@
     <link rel="shortcut icon" type="image/png" href="/static/elixerr logo_resize.png">
     <link rel="apple-touch-icon" href="/static/elixerr logo_resize.png">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
     <style>
         .vote-card {
             transition: all 0.3s ease;
@@ -99,7 +98,7 @@
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
     <div id="app"></div>
 
-    <script type="text/babel">
+    <script>
         const { useState, useEffect } = React;
 
         // ===== 상수 정의 =====
