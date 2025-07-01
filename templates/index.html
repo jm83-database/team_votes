@@ -415,7 +415,7 @@
             const [showHelp, setShowHelp] = useState(false);
             
             const { message, messageType, showMessage } = useMessage();
-            const { loading, request } = useApi();
+            const { loading, setLoading, request } = useApi();
 
             return (
                 <div className="min-h-screen">
