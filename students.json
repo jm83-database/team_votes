@@ -1,65 +1,35 @@
 [
   {
     "id": 1,
-    "name": "김민제",
-    "password": "8009",
-    "team_id": 1,
-    "has_voted": false,
-    "voted_team": null,
-    "vote_timestamp": null,
-    "voted_teams": [
-      2
-    ]
-  },
-  {
-    "id": 2,
-    "name": "김예지",
-    "password": "6257",
-    "team_id": 1,
+    "name": "고명훈",
+    "password": "7407",
+    "team_id": 4,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
     "id": 3,
-    "name": "전진우",
-    "password": "3071",
-    "team_id": 1,
-    "has_voted": false,
-    "voted_team": null,
-    "vote_timestamp": null
-  },
-  {
-    "id": 4,
-    "name": "이연미",
-    "password": "2142",
-    "team_id": 1,
-    "has_voted": false,
-    "voted_team": null,
-    "vote_timestamp": null
-  },
-  {
-    "id": 5,
-    "name": "탁정균",
-    "password": "5609",
-    "team_id": 1,
-    "has_voted": false,
-    "voted_team": null,
-    "vote_timestamp": null
-  },
-  {
-    "id": 6,
-    "name": "김호연",
-    "password": "7243",
+    "name": "김동현",
+    "password": "9477",
     "team_id": 2,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
-    "id": 7,
-    "name": "김은채",
-    "password": "9308",
+    "id": 5,
+    "name": "김세빈",
+    "password": "2315",
+    "team_id": 6,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 6,
+    "name": "김시온",
+    "password": "5957",
     "team_id": 2,
     "has_voted": false,
     "voted_team": null,
@@ -67,80 +37,71 @@
   },
   {
     "id": 8,
-    "name": "이준호",
-    "password": "3713",
-    "team_id": 2,
+    "name": "김지민",
+    "password": "6777",
+    "team_id": 4,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
     "id": 9,
-    "name": "김예원",
-    "password": "7220",
-    "team_id": 2,
-    "has_voted": false,
-    "voted_team": null,
-    "vote_timestamp": null
-  },
-  {
-    "id": 10,
-    "name": "박지아",
-    "password": "4198",
-    "team_id": 2,
+    "name": "김진우",
+    "password": "3852",
+    "team_id": 1,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
     "id": 11,
-    "name": "강원빈",
-    "password": "1440",
-    "team_id": 2,
+    "name": "김차겸",
+    "password": "6784",
+    "team_id": 7,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
     "id": 12,
-    "name": "김시언",
-    "password": "9993",
-    "team_id": 3,
+    "name": "김태연",
+    "password": "4618",
+    "team_id": 6,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
     "id": 13,
-    "name": "김규원",
-    "password": "8338",
-    "team_id": 3,
+    "name": "김태현",
+    "password": "0370",
+    "team_id": 5,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
     "id": 14,
-    "name": "안수현",
-    "password": "7909",
-    "team_id": 3,
+    "name": "김희수",
+    "password": "1450",
+    "team_id": 6,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
     "id": 15,
-    "name": "박수범",
-    "password": "3951",
-    "team_id": 3,
+    "name": "류종석",
+    "password": "1960",
+    "team_id": 5,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
     "id": 16,
-    "name": "이시윤",
-    "password": "3717",
+    "name": "목은경",
+    "password": "3227",
     "team_id": 3,
     "has_voted": false,
     "voted_team": null,
@@ -148,44 +109,35 @@
   },
   {
     "id": 17,
-    "name": "김정명",
-    "password": "0429",
-    "team_id": 3,
+    "name": "박강민",
+    "password": "9587",
+    "team_id": 7,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
     "id": 18,
-    "name": "박세형",
-    "password": "3785",
-    "team_id": 4,
+    "name": "박명균",
+    "password": "7359",
+    "team_id": 2,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
     "id": 19,
-    "name": "강찬미",
-    "password": "1266",
-    "team_id": 4,
-    "has_voted": false,
-    "voted_team": null,
-    "vote_timestamp": null
-  },
-  {
-    "id": 20,
-    "name": "공현지",
-    "password": "3170",
-    "team_id": 4,
+    "name": "박상필",
+    "password": "0010",
+    "team_id": 1,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
     "id": 21,
-    "name": "손준서",
-    "password": "2013",
+    "name": "박우재",
+    "password": "3725",
     "team_id": 4,
     "has_voted": false,
     "voted_team": null,
@@ -193,44 +145,35 @@
   },
   {
     "id": 22,
-    "name": "황선우",
-    "password": "2755",
-    "team_id": 5,
-    "has_voted": false,
-    "voted_team": null,
-    "vote_timestamp": null
-  },
-  {
-    "id": 23,
-    "name": "오병주",
-    "password": "1995",
-    "team_id": 5,
+    "name": "박주성",
+    "password": "7904",
+    "team_id": 7,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
     "id": 24,
-    "name": "전호연",
-    "password": "2690",
-    "team_id": 5,
+    "name": "박형진",
+    "password": "5028",
+    "team_id": 1,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
     "id": 25,
-    "name": "김영래",
-    "password": "7861",
-    "team_id": 5,
+    "name": "서상원",
+    "password": "6328",
+    "team_id": 1,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
     "id": 26,
-    "name": "금선화",
-    "password": "5158",
+    "name": "서지환",
+    "password": "7785",
     "team_id": 6,
     "has_voted": false,
     "voted_team": null,
@@ -238,8 +181,8 @@
   },
   {
     "id": 27,
-    "name": "신지우",
-    "password": "3064",
+    "name": "서창범",
+    "password": "9838",
     "team_id": 6,
     "has_voted": false,
     "voted_team": null,
@@ -247,27 +190,162 @@
   },
   {
     "id": 28,
-    "name": "권서연",
-    "password": "4182",
-    "team_id": 6,
+    "name": "손아현",
+    "password": "8595",
+    "team_id": 7,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
     "id": 29,
-    "name": "최소현",
-    "password": "4808",
-    "team_id": 6,
+    "name": "송누림",
+    "password": "6993",
+    "team_id": 1,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null
   },
   {
     "id": 30,
-    "name": "김근형",
-    "password": "7652",
+    "name": "심예진",
+    "password": "7257",
+    "team_id": 4,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 31,
+    "name": "심형은",
+    "password": "2398",
+    "team_id": 2,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 32,
+    "name": "안지훈",
+    "password": "4029",
+    "team_id": 5,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 33,
+    "name": "안혜리",
+    "password": "8457",
+    "team_id": 3,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 35,
+    "name": "오민석",
+    "password": "6025",
+    "team_id": 2,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 37,
+    "name": "원대연",
+    "password": "7823",
+    "team_id": 4,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 38,
+    "name": "유호인",
+    "password": "9985",
+    "team_id": 5,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 40,
+    "name": "윤지찬",
+    "password": "0278",
+    "team_id": 7,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 41,
+    "name": "이민지",
+    "password": "8453",
+    "team_id": 3,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 43,
+    "name": "이윤규",
+    "password": "5745",
+    "team_id": 3,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 44,
+    "name": "이재훈",
+    "password": "0471",
+    "team_id": 3,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 47,
+    "name": "이형도",
+    "password": "0822",
+    "team_id": 5,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 48,
+    "name": "임승수",
+    "password": "6544",
+    "team_id": 1,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 49,
+    "name": "장석빈",
+    "password": "0275",
     "team_id": 6,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 51,
+    "name": "정민철",
+    "password": "0523",
+    "team_id": 2,
+    "has_voted": false,
+    "voted_team": null,
+    "vote_timestamp": null
+  },
+  {
+    "id": 53,
+    "name": "정재윤",
+    "password": "0116",
+    "team_id": 3,
     "has_voted": false,
     "voted_team": null,
     "vote_timestamp": null

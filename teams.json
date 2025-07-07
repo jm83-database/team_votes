@@ -1,79 +1,96 @@
 [
   {
     "id": 1,
-    "name": "기사단의 불사조",
-    "project_name": "예비 귀농인을 위한 맞춤 AI 네비게이터",
+    "name": "1팀",
+    "project_name": "스마트 시티 데이터 분석 플랫폼",
     "members": [
-      1,
-      2,
-      3,
-      4,
-      5
+      25,
+      29,
+      19,
+      9,
+      24,
+      48
     ],
     "vote_count": 0
   },
   {
     "id": 2,
-    "name": "Outlier",
-    "project_name": "AI 기반 국회 정보 단순화 디지털플랫폼",
+    "name": "2팀",
+    "project_name": "AI 기반 헬스케어 예측 시스템",
     "members": [
       6,
-      7,
-      8,
-      9,
-      10,
-      11
+      35,
+      18,
+      31,
+      51,
+      3
     ],
     "vote_count": 0
   },
   {
     "id": 3,
-    "name": "조기졸업",
-    "project_name": "AI-DOL(아이돌)",
+    "name": "3팀",
+    "project_name": "실시간 교통 데이터 모니터링 대시보드",
     "members": [
-      12,
-      13,
-      14,
-      15,
       16,
-      17
+      41,
+      53,
+      43,
+      33,
+      44
     ],
     "vote_count": 0
   },
   {
     "id": 4,
-    "name": "난 NULL을 4랑하조",
-    "project_name": "GongPick - 공공기관 업무추진비 분석을 통한 맛집 추천",
+    "name": "4팀",
+    "project_name": "소셜 미디어 감성 분석 도구",
     "members": [
-      18,
-      19,
-      20,
-      21
+      21,
+      8,
+      30,
+      37,
+      1
     ],
     "vote_count": 0
   },
   {
     "id": 5,
-    "name": "perror",
-    "project_name": "공공데이터를 활용한 위험지역 회피 정보 제공 서비스",
+    "name": "5팀",
+    "project_name": "개인화 추천 시스템",
     "members": [
-      22,
-      23,
-      24,
-      25
+      32,
+      15,
+      13,
+      47,
+      38
     ],
     "vote_count": 0
   },
   {
     "id": 6,
-    "name": "검은조직",
-    "project_name": "AI 기반 시청각 장애인 간의 의사소통 지원 서비스",
+    "name": "6팀",
+    "project_name": "환경 데이터 시각화 플랫폼",
     "members": [
-      26,
+      5,
+      12,
       27,
+      14,
+      49,
+      26
+    ],
+    "vote_count": 0
+  },
+  {
+    "id": 7,
+    "name": "7팀",
+    "project_name": "금융 데이터 분석 및 리스크 관리 시스템",
+    "members": [
       28,
-      29,
-      30
+      40,
+      17,
+      22,
+      11
     ],
     "vote_count": 0
   }
