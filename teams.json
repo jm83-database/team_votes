@@ -1,8 +1,8 @@
 [
   {
     "id": 1,
-    "name": "1팀",
-    "project_name": "스마트 시티 데이터 분석 플랫폼",
+    "name": "1팀 - First-Airline",
+    "project_name": "인천공항 실시간 데이터 기반 지연 시간 및 혼잡도 예측 서비스",
     "members": [
       25,
       29,
@@ -16,7 +16,7 @@
   {
     "id": 2,
     "name": "2팀",
-    "project_name": "AI 기반 헬스케어 예측 시스템",
+    "project_name": "인천공항 실시간 데이터 기반 통합 스마트 서비스",
     "members": [
       6,
       35,
@@ -29,8 +29,8 @@
   },
   {
     "id": 3,
-    "name": "3팀",
-    "project_name": "실시간 교통 데이터 모니터링 대시보드",
+    "name": "3팀 - Commercy(커머씨)",
+    "project_name": "실시간 이커머스 고객 행동 기반 BI 및 자동화된 의사 결정 지원 시스템",
     "members": [
       16,
       41,
@@ -43,8 +43,8 @@
   },
   {
     "id": 4,
-    "name": "4팀",
-    "project_name": "소셜 미디어 감성 분석 도구",
+    "name": "4팀 - MSGA",
+    "project_name": "실시간 데이터를 8개 카테고리로 받아 나만의 동네 찾기",
     "members": [
       21,
       8,
@@ -57,7 +57,7 @@
   {
     "id": 5,
     "name": "5팀",
-    "project_name": "개인화 추천 시스템",
+    "project_name": "RFM 기반 고객 세분화와 실시간 구매 데이터 연계를 통한 Power BI 대시보드 시스템",
     "members": [
       32,
       15,
@@ -70,7 +70,7 @@
   {
     "id": 6,
     "name": "6팀",
-    "project_name": "환경 데이터 시각화 플랫폼",
+    "project_name": "실시간 도시 데이터 기반 B2B/B2G 대시보드",
     "members": [
       5,
       12,
@@ -84,7 +84,7 @@
   {
     "id": 7,
     "name": "7팀",
-    "project_name": "금융 데이터 분석 및 리스크 관리 시스템",
+    "project_name": "실시간 데이터 파이프라인을 통한 도시별 여행 매력도 자동 산출 및 시각화 시스템",
     "members": [
       28,
       40,
