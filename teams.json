@@ -1,97 +1,58 @@
 [
   {
     "id": 1,
-    "name": "1팀 - First-Airline",
-    "project_name": "인천공항 실시간 데이터 기반 지연 시간 및 혼잡도 예측 서비스",
-    "members": [
-      25,
-      29,
-      19,
-      9,
-      24,
-      48
-    ],
+    "name": "마동석",
+    "project_name": "상권분석 창업도우미 AI서비스: 마포구 외식업을 중심으로",
+    "members": [1, 2, 3, 4, 5, 6],
     "vote_count": 0
   },
   {
     "id": 2,
-    "name": "2팀",
-    "project_name": "인천공항 실시간 데이터 기반 통합 스마트 서비스",
-    "members": [
-      6,
-      35,
-      18,
-      31,
-      51,
-      3
-    ],
+    "name": "백만원",
+    "project_name": "시소: 균형잡힌 뉴스 소비를 위한 인텔리전스 플랫폼",
+    "members": [7, 8, 9, 10, 11, 12],
     "vote_count": 0
   },
   {
     "id": 3,
-    "name": "3팀 - Commercy(커머씨)",
-    "project_name": "실시간 이커머스 고객 행동 기반 BI 및 자동화된 의사 결정 지원 시스템",
-    "members": [
-      16,
-      41,
-      53,
-      43,
-      33,
-      44
-    ],
+    "name": "ChatGymPT",
+    "project_name": "AI 퍼스널 헬스 트레이너 챗봇",
+    "members": [13, 14, 15, 16, 17, 18],
     "vote_count": 0
   },
   {
     "id": 4,
-    "name": "4팀 - MSGA",
-    "project_name": "실시간 데이터를 8개 카테고리로 받아 나만의 동네 찾기",
-    "members": [
-      21,
-      8,
-      30,
-      37,
-      1
-    ],
+    "name": "YoungSeek",
+    "project_name": "OCR과 GPT를 활용한 해외 여행 영수증 자동 분석 및 정리 웹 애플리케이션",
+    "members": [19, 20, 21, 22, 23],
     "vote_count": 0
   },
   {
     "id": 5,
-    "name": "5팀",
-    "project_name": "RFM 기반 고객 세분화와 실시간 구매 데이터 연계를 통한 Power BI 대시보드 시스템",
-    "members": [
-      32,
-      15,
-      13,
-      47,
-      38
-    ],
+    "name": "헤아림",
+    "project_name": "AI 보험 약관 해석 챗봇 Ai-bo (Web)",
+    "members": [24, 25, 26, 27, 28, 29],
     "vote_count": 0
   },
   {
     "id": 6,
-    "name": "6팀",
-    "project_name": "실시간 도시 데이터 기반 B2B/B2G 대시보드",
-    "members": [
-      5,
-      12,
-      27,
-      14,
-      49,
-      26
-    ],
+    "name": "자비스대리",
+    "project_name": "AI 회의 비서: 듣고, 정리하고, 함께 참여하는 JARVIS",
+    "members": [30, 31, 32, 33, 34, 35],
     "vote_count": 0
   },
   {
     "id": 7,
-    "name": "7팀",
-    "project_name": "실시간 데이터 파이프라인을 통한 도시별 여행 매력도 자동 산출 및 시각화 시스템",
-    "members": [
-      28,
-      40,
-      17,
-      22,
-      11
-    ],
+    "name": "뉴스한입🍉",
+    "project_name": "미국 뉴스 요약·챗봇 웹 애플리케이션",
+    "members": [36, 37, 38, 39, 40, 41],
+    "vote_count": 0
+  },
+  {
+    "id": 8,
+    "name": "Feelog",
+    "project_name": "감정 공감과 선택 회고를 기반으로 한 캐릭터 대화형 퍼스널 플랫폼",
+    "members": [42, 43, 44, 45, 46, 47],
     "vote_count": 0
   }
 ]
