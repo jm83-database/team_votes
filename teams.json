@@ -1,65 +1,58 @@
 [
   {
     "id": 1,
-    "name": "무를팍도사",
-    "project_name": "사주 기반 얼굴형",
-    "members": [
-      18,
-      20,
-      25
-    ],
+    "name": "Lookbook Studio",
+    "project_name": "가상 피팅 중심의 쇼핑 플랫폼",
+    "members": [8, 12, 14, 29, 37, 47],
     "vote_count": 0
   },
   {
     "id": 2,
-    "name": "Rounders",
-    "project_name": "뽑쇨(PpoSeek) - 취뽑! 취업 커리어 컨설팅 플랫폼",
-    "members": [
-      7,
-      12,
-      14,
-      15,
-      16
-    ],
+    "name": "2팀",
+    "project_name": "AI 여행 플래너",
+    "members": [13, 15, 16, 17, 26, 44],
     "vote_count": 0
   },
   {
     "id": 3,
-    "name": "Artemia",
-    "project_name": "AI 와 함께하는 스마트한 서울 전시생활",
-    "members": [
-      5,
-      8,
-      9,
-      10,
-      29
-    ],
+    "name": "3팀",
+    "project_name": "외국인 관광객 특화 서울 여행 플랫폼",
+    "members": [1, 2, 3, 5, 34, 43],
     "vote_count": 0
   },
   {
     "id": 4,
-    "name": "fantastic4",
-    "project_name": "음성을 활용한 파킨슨병 진단 보조 iot서비스",
-    "members": [
-      4,
-      11,
-      23,
-      24,
-      28
-    ],
+    "name": "키오미",
+    "project_name": "JobAI, 취업 잡아잇! 면접, 이력, CV 등의 취업 관리 시스템 - 커리어를 요리하는 자들",
+    "members": [10, 11, 20, 24, 25, 33],
     "vote_count": 0
   },
   {
     "id": 5,
-    "name": "와",
-    "project_name": "역사로 - AI 기반 한국사 고등 검색 플랫폼",
-    "members": [
-      6,
-      22,
-      26,
-      27,
-      30
-    ],
+    "name": "5팀",
+    "project_name": "Goldentime(응급실 매핑 어플리케이션)",
+    "members": [9, 30, 39, 45, 46],
+    "vote_count": 0
+  },
+  {
+    "id": 6,
+    "name": "Jeonrae JOA",
+    "project_name": "전래동화 기반 인터랙티브 콘텐츠",
+    "members": [4, 6, 19, 21, 22, 23],
+    "vote_count": 0
+  },
+  {
+    "id": 7,
+    "name": "7",
+    "project_name": "외국어 발음 코칭",
+    "members": [18, 31, 35, 36, 41],
+    "vote_count": 0
+  },
+  {
+    "id": 8,
+    "name": "링키오(Linkio)",
+    "project_name": "AI 키오스크",
+    "members": [7, 27, 28, 32, 38, 40],
     "vote_count": 0
   }
 ]
