@@ -1,58 +1,50 @@
 [
   {
     "id": 1,
-    "name": "Lookbook Studio",
-    "project_name": "가상 피팅 중심의 쇼핑 플랫폼",
-    "members": [8, 12, 14, 29, 37, 47],
+    "name": "ITC",
+    "project_name": "암호화폐 시장 훈련 및 학습 시뮬레이션 시스템",
+    "members": [19, 30, 35, 37, 21, 1],
+    "member_names": ["박상필", "심예진", "오민석", "원대연", "박우재", "고명훈"],
     "vote_count": 0
   },
   {
     "id": 2,
-    "name": "2팀",
-    "project_name": "AI 여행 플래너",
-    "members": [13, 15, 16, 17, 26, 44],
+    "name": "쿼드코어",
+    "project_name": "글로벌 위기 및 기회 탐지 플랫폼",
+    "members": [53, 26, 14, 22, 25, 33],
+    "member_names": ["정재윤", "서지환", "김희수", "박주성", "서상원", "안혜리"],
     "vote_count": 0
   },
   {
     "id": 3,
-    "name": "3팀",
-    "project_name": "외국인 관광객 특화 서울 여행 플랫폼",
-    "members": [1, 2, 3, 5, 34, 43],
+    "name": "도개교",
+    "project_name": "기업과 구직자를 연결하는 채용 플랫폼",
+    "members": [29, 41, 24, 8, 6, 40],
+    "member_names": ["송누림", "이민지", "박형진", "김지민", "김시온", "윤지찬"],
     "vote_count": 0
   },
   {
     "id": 4,
-    "name": "키오미",
-    "project_name": "JobAI, 취업 잡아잇! 면접, 이력, CV 등의 취업 관리 시스템 - 커리어를 요리하는 자들",
-    "members": [10, 11, 20, 24, 25, 33],
+    "name": "STUDIYA",
+    "project_name": "학습로그 데이터기반 교육 에이전트",
+    "members": [9, 44, 51, 27, 3],
+    "member_names": ["김진우", "이재훈", "정민철", "서창범", "김동현"],
     "vote_count": 0
   },
   {
     "id": 5,
-    "name": "5팀",
-    "project_name": "Goldentime(응급실 매핑 어플리케이션)",
-    "members": [9, 30, 39, 45, 46],
+    "name": "TEAM5",
+    "project_name": "보안 솔루션",
+    "members": [18, 32, 13, 28, 49],
+    "member_names": ["박명규", "안지훈", "김태현", "손아현", "장석빈"],
     "vote_count": 0
   },
   {
     "id": 6,
-    "name": "Jeonrae JOA",
-    "project_name": "전래동화 기반 인터랙티브 콘텐츠",
-    "members": [4, 6, 19, 21, 22, 23],
-    "vote_count": 0
-  },
-  {
-    "id": 7,
-    "name": "7",
-    "project_name": "외국어 발음 코칭",
-    "members": [18, 31, 35, 36, 41],
-    "vote_count": 0
-  },
-  {
-    "id": 8,
-    "name": "링키오(Linkio)",
-    "project_name": "AI 키오스크",
-    "members": [7, 27, 28, 32, 38, 40],
+    "name": "메기스터디",
+    "project_name": "수능 기출 기반 지능형 학습 데이터 플랫폼 구축 및 AI 전환",
+    "members": [48, 11, 38, 47, 31],
+    "member_names": ["임승수", "김차겸", "유호인", "이형도", "심형은"],
     "vote_count": 0
   }
 ]
