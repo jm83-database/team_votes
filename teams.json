@@ -1,51 +1,44 @@
 [
   {
     "id": 1,
-    "name": "Team1",
-    "project_name": "HAPTIX : IF YOU SEE, THEN YOU CAN FEEL",
-    "members": [8, 12, 14, 29, 37, 47],
+    "name": "Siren",
+    "project_name": "실시간 응급 환자 수송과 지원을 위한 Azure Cloud와 Databricks 기반 실시간 분산 시스템 및 분석 서비스",
+    "members": [2, 16, 21, 25, 30],
     "vote_count": 0
   },
   {
     "id": 2,
-    "name": "Plannable",
-    "project_name": "Pill-Food Safety Checker",
-    "members": [13, 15, 16, 17, 26, 44],
+    "name": "HarMoni",
+    "project_name": "Azure Databricks 기반 실시간 IoT 웨어러블 산업 안전 분석 플랫폼",
+    "members": [6, 10, 19, 20, 23],
     "vote_count": 0
   },
   {
     "id": 3,
-    "name": "Team3(삼문철)",
-    "project_name": "차량견적 AI 서비스",
-    "members": [1, 2, 3, 5, 34, 43],
+    "name": "MoodSync",
+    "project_name": "Azure를 활용한 사용자 컨텍스트 인지 기반 콘텐츠 추천 시스템",
+    "members": [4, 5, 9, 12, 28],
     "vote_count": 0
   },
   {
     "id": 4,
-    "name": "BIG6",
-    "project_name": "이미지 기반 AI 심리(성격) 검사 서비스",
-    "members": [10, 11, 20, 24, 25, 33],
+    "name": "FacFLEXity",
+    "project_name": "Azure Databricks를 활용한 실시간 예지보전 및 전력 사용량 예측 기반 스케줄링 최적화 시스템",
+    "members": [1, 11, 22, 27, 31],
     "vote_count": 0
   },
   {
     "id": 5,
-    "name": "BuddyBuddy(버디버디)",
-    "project_name": "시각장애인을 위한 알약 식별 / 검색 서비스",
-    "members": [9, 30, 39, 45, 46],
+    "name": "커피바라",
+    "project_name": "Azure 기반 커피 생두의 한국 수입원가 예측 모델 구축",
+    "members": [3, 8, 13, 14],
     "vote_count": 0
   },
   {
     "id": 6,
-    "name": "육안(肉眼)",
-    "project_name": "AI기반 독서 리딩(Reading & Leading) 메이트 ",
-    "members": [4, 6, 19, 21, 22, 23],
-    "vote_count": 0
-  },
-  {
-    "id": 7,
-    "name": "근손실(Muscle Loss)",
-    "project_name": "Fit Form Live - AI가 당신의 운동 자세를 실시간으로 교정하는 Smart Coach -",
-    "members": [18, 31, 35, 36, 41],
+    "name": "딱맞닥",
+    "project_name": "Azure Databricks 및 Azure 데이터/AI 서비스 기반 대학병원 의료운영 최적화",
+    "members": [7, 15, 18, 26],
     "vote_count": 0
   }
 ]
