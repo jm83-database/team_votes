@@ -1,51 +1,44 @@
 [
   {
     "id": 1,
-    "name": "TEAM KOREA",
-    "project_name": "사용자 취향 분석 기반 K 미디어 맞춤형 여행 일정 제안 서비스",
-    "members": [20, 36, 37, 39, 58],
+    "name": "TIP (팁)",
+    "project_name": "상표권 침해 자동 모니터링 및 법리 기반 침해 분석 AI 시스템",
+    "members": [25, 26, 34, 42, 44, 46],
     "vote_count": 0
   },
   {
     "id": 2,
-    "name": "E.T.(Emerging Talent)",
-    "project_name": "B2B 인수인계 지원 및 조직문화 개선 서비스",
-    "members": [1, 6, 9, 16, 25, 42],
+    "name": "Beautiful World❤️",
+    "project_name": "상주형 AI 컴패니언 서비스 ",
+    "members": [4, 17, 24, 29, 35, 50],
     "vote_count": 0
   },
   {
     "id": 3,
-    "name": "Az의 마법사",
-    "project_name": "Protein sequence to gene ontology annotations machine learning model building",
-    "members": [3, 40, 44, 48, 57],
+    "name": "마소대학교",
+    "project_name": "실험실 환경 시뮬레이션 및 운영 관리 보조 서비스  ",
+    "members": [13, 16, 18, 37, 40, 52],
     "vote_count": 0
   },
   {
     "id": 4,
-    "name": "IEUM(이음)",
-    "project_name": "회의와 실행을 연결하는 지능형 AI 회의 관리 서비스",
-    "members": [4, 5, 10, 21, 22, 43],
+    "name": "TO THE MARS🚀",
+    "project_name": "투자/교육 관련",
+    "members": [22, 33, 36, 38, 51, 53],
     "vote_count": 0
   },
   {
     "id": 5,
-    "name": "오로라(5+Law+Right)",
-    "project_name": "AI 기반 계약서 사전 점검 서비스",
-    "members": [13, 17, 26, 28, 54],
+    "name": "비전 프로 5",
+    "project_name": "Edge–Twin-Robot 엣지-트윈-로봇",
+    "members": [1, 3, 9, 23, 39, 43],
     "vote_count": 0
   },
   {
     "id": 6,
-    "name": "Deep Nexus",
-    "project_name": "기업의 정형/비정형 통합 데이터 기반 챗봇 및 사내 메신저 서비스",
-    "members": [14, 23, 33, 35, 41, 51],
-    "vote_count": 0
-  },
-  {
-    "id": 7,
-    "name": "파워엘릭서",
-    "project_name": "AI 기반 교육 지원 시스템",
-    "members": [7, 18, 29, 32, 38, 46],
+    "name": "Team balance (Team 6)",
+    "project_name": "제조업 A 불량 검사 및 원인 분석 시스템(NextView)",
+    "members": [5, 6, 10, 27, 28, 32, 48],
     "vote_count": 0
   }
 ]
