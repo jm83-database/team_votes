@@ -1,37 +1,44 @@
 [
   {
     "id": 1,
-    "name": "SignalCraft",
-    "project_name": "Azure 인프라를 활용한 OTT 서비스 고객 이탈 방지 시스템",
-    "members": [6, 10, 11, 16, 23],
+    "name": "BetterSeller",
+    "project_name": "Bestseller 예측 서비스",
+    "members": [6, 1, 20, 21, 29, 35],
     "vote_count": 0
   },
   {
     "id": 2,
-    "name": "깃잡이",
-    "project_name": "클라우드 기반으로 Github과 연동한 기업 준법 집행 및 관리 플랫폼",
-    "members": [1, 7, 13, 22, 25, 31],
+    "name": "GATE6",
+    "project_name": "이미지 기반 기내 반입 물품 판별 서비스",
+    "members": [14, 18, 27, 13, 31, 44, 45],
     "vote_count": 0
   },
   {
     "id": 3,
-    "name": "avitor",
-    "project_name": "Azure 리소스를 활용한 사용자 구매 이력 기반 리콜 자동 매칭·경보 서비스",
-    "members": [2, 5, 21, 27, 30],
+    "name": "StyleFit",
+    "project_name": "체형 데이터 기반 AI 스타일링 서비스",
+    "members": [7, 10, 12, 17, 22, 38],
     "vote_count": 0
   },
   {
     "id": 4,
-    "name": "NSC",
-    "project_name": "네이버×두나무 스테이블코인 기반 글로벌 결제 플랫폼",
-    "members": [4, 9, 12, 15, 26],
+    "name": "고당스",
+    "project_name": "E-Nudge: 유해 댓글 넛지 시스템",
+    "members": [15, 19, 26, 39, 41, 49],
     "vote_count": 0
   },
   {
     "id": 5,
-    "name": "",
-    "project_name": "",
-    "members": [3, 8, 14, 20, 28],
+    "name": "스쿨 존 웍",
+    "project_name": "경기도 어린이 보호구역(스쿨존) 안전 분석 — AI 비전 + LR 모델 기반 안전등급 산출 및 대시보드 서비스",
+    "members": [5, 32, 37, 40, 42, 43],
+    "vote_count": 0
+  },
+  {
+    "id": 6,
+    "name": "이글어른",
+    "project_name": "Egle-eye(이글아이) : Azure 기반 화재 감지 서비스",
+    "members": [3, 33, 36, 46, 47, 48],
     "vote_count": 0
   }
 ]
