@@ -1,44 +1,37 @@
 [
   {
     "id": 1,
-    "name": "BetterSeller",
-    "project_name": "Bestseller 예측 서비스",
-    "members": [6, 1, 20, 21, 29, 35],
+    "name": "FIVE GIRLS",
+    "project_name": "협업 광고 성과 모니터링 시스템",
+    "members": [2, 9, 13, 14, 26],
     "vote_count": 0
   },
   {
     "id": 2,
-    "name": "GATE6",
-    "project_name": "이미지 기반 기내 반입 물품 판별 서비스",
-    "members": [14, 18, 27, 13, 31, 44, 45],
+    "name": "aremarem",
+    "project_name": "외국인 관광객을 위한 실시간 상황 인지형(Context-Aware) 로컬 핫플 및 행사 추천 서비스",
+    "members": [1, 5, 16, 28, 35],
     "vote_count": 0
   },
   {
     "id": 3,
-    "name": "StyleFit",
-    "project_name": "체형 데이터 기반 AI 스타일링 서비스",
-    "members": [7, 10, 12, 17, 22, 38],
+    "name": "기쁨은혜우종",
+    "project_name": "Azure 기반 Event-driven Fashion AI Fitting SaaS",
+    "members": [11, 12, 17, 20, 27],
     "vote_count": 0
   },
   {
     "id": 4,
-    "name": "고당스",
-    "project_name": "E-Nudge: 유해 댓글 넛지 시스템",
-    "members": [15, 19, 26, 39, 41, 49],
+    "name": "세이프릭스",
+    "project_name": "실시간 기상재난 쉼터 탐색 및 경로 안내 서비스",
+    "members": [6, 7, 19, 22, 30],
     "vote_count": 0
   },
   {
     "id": 5,
-    "name": "스쿨 존 웍",
-    "project_name": "경기도 어린이 보호구역(스쿨존) 안전 분석 — AI 비전 + LR 모델 기반 안전등급 산출 및 대시보드 서비스",
-    "members": [5, 32, 37, 40, 42, 43],
-    "vote_count": 0
-  },
-  {
-    "id": 6,
-    "name": "이글어른",
-    "project_name": "Egle-eye(이글아이) : Azure 기반 화재 감지 서비스",
-    "members": [3, 33, 36, 46, 47, 48],
+    "name": "RadiNow",
+    "project_name": "원전 안전 모니터링 시스템",
+    "members": [4, 25, 34, 38, 40, 41],
     "vote_count": 0
   }
 ]
