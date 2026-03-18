@@ -170,8 +170,64 @@ function App() {
                                 </svg>
                             </button>
                         </div>
-                        <div className="p-6 overflow-y-auto" style={{ maxHeight: '70vh' }}>
-                            <p className="text-gray-600">학생: 로그인 후 투표할 팀을 선택하세요.<br />관리자: 과정 관리, 팀 구성, 투표 제어를 할 수 있습니다.</p>
+                        <div className="p-6 overflow-y-auto space-y-6" style={{ maxHeight: '70vh' }}>
+                            {/* 학생 모드 */}
+                            <div>
+                                <div className="flex items-center space-x-2 mb-3">
+                                    <span className="bg-blue-100 text-blue-700 text-sm font-semibold px-3 py-1 rounded-full">학생 모드</span>
+                                </div>
+                                <ul className="space-y-2 text-gray-700 text-sm">
+                                    <li>• <strong>로그인</strong>: 이름과 비밀번호를 입력해 로그인합니다.</li>
+                                    <li>• <strong>팀 선택</strong>: 관리자가 설정한 방식에 따라 1개(단일 모드) 또는 3개(다중 모드) 팀을 선택합니다.</li>
+                                    <li>• <strong>투표 마감 타이머</strong>: 투표 종료까지 남은 시간이 실시간으로 표시됩니다.</li>
+                                    <li>• <strong>제한 사항</strong>: 본인이 속한 팀은 선택할 수 없습니다.</li>
+                                    <li>• 투표 완료 후 확인 화면이 표시됩니다.</li>
+                                </ul>
+                            </div>
+
+                            <hr className="border-gray-200" />
+
+                            {/* 관리자 모드 */}
+                            <div>
+                                <div className="flex items-center space-x-2 mb-3">
+                                    <span className="bg-indigo-100 text-indigo-700 text-sm font-semibold px-3 py-1 rounded-full">관리자 모드</span>
+                                </div>
+                                <div className="space-y-4 text-gray-700 text-sm">
+                                    <div>
+                                        <p className="font-semibold text-gray-800 mb-1">① 과정(코호트) 관리</p>
+                                        <ul className="space-y-1 pl-2">
+                                            <li>• 새 과정을 ID와 이름으로 생성합니다.</li>
+                                            <li>• JSON 파일로 학생 명단을 한번에 업로드할 수 있습니다.</li>
+                                            <li>• 과정별 활성화/비활성화 토글 및 삭제가 가능합니다.</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-gray-800 mb-1">② 팀 구성</p>
+                                        <ul className="space-y-1 pl-2">
+                                            <li>• PC: 드래그앤드롭으로 학생을 팀에 배정합니다.</li>
+                                            <li>• 모바일: 드롭다운으로 팀을 선택합니다.</li>
+                                            <li>• 팀 이름, 프로젝트명 설정 및 균등 배분 기능을 제공합니다.</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-gray-800 mb-1">③ 투표 제어</p>
+                                        <ul className="space-y-1 pl-2">
+                                            <li>• <strong>즉시 시작</strong>: 지속 시간(분)을 설정해 바로 시작합니다.</li>
+                                            <li>• <strong>예약 시작</strong>: 시작/종료 시간을 직접 지정합니다.</li>
+                                            <li>• 투표 모드를 단일(1개 팀) 또는 다중(3개 팀)으로 선택합니다.</li>
+                                            <li>• 투표 중지 및 전체 결과 초기화가 가능합니다.</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-gray-800 mb-1">④ 투표 결과</p>
+                                        <ul className="space-y-1 pl-2">
+                                            <li>• 팀 순위를 실시간으로 확인합니다 (금/은/동 색상 구분).</li>
+                                            <li>• 학생별 투표 현황을 테이블로 확인합니다.</li>
+                                            <li>• 결과를 CSV 파일로 다운로드할 수 있습니다.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
